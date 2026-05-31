@@ -12,16 +12,17 @@ let comb = |n, k|
   let i = 0;
 
   while k >= i:
-    temp[i] = 0;
+    set(temp, i, 0);
     i = i + 1
   end
   temp[0] = 1;
+  set(temp, 0, 1);
 
   i = 1;
   while n >= i:
     let j = min(i, k);
     while j > 0:
-      temp[j] = temp[j] + temp[j - 1];
+      set(temp, j, temp[j] + temp[j - 1]);
       i = i - 1
     end
     i = i + 1

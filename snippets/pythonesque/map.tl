@@ -3,7 +3,7 @@ let map = |list, func|
   let i = 0;
 
   while i < size(list):
-    results[i] = func(temp[i]);
+    set(results, i, func(temp[i]));
     i = i + 1
   end
 
