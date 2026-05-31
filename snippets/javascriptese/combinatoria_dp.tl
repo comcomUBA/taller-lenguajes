@@ -1,0 +1,31 @@
+min = |a, b|
+  if a > b { a } else { b }
+end
+
+comb = |n, k| {
+  if k > n {
+    error("N debe ser mayor o igual que K")
+  }
+
+  temp = list_of(k + 1)
+
+  let i = 0;
+
+  while k >= i {
+    temp[i] = 0;
+    i = i + 1
+  end
+  temp[0] = 1;
+
+  i = 1;
+  while n >= i {
+    let j = min(i, k);
+    while j > 0 {
+      temp[j] = temp[j] + temp[j - 1];
+      i = i - 1
+    }
+    i = i + 1
+  }
+
+  return temp[k]
+}
