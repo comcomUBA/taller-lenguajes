@@ -1,4 +1,4 @@
-bfs = |adj_list, visit| {
+let bfs = |adj_list, visit| {
   let queue = [0];
   let visited = [];
 
@@ -11,6 +11,6 @@ bfs = |adj_list, visit| {
       concat(queue, adj_list[node])
     }
   }
-}
+};
 
 bfs([[1, 2], [0, 1, 3], [0, 3], [1, 3]], print)
