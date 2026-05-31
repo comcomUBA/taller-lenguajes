@@ -1,4 +1,4 @@
-map = |list, func|
+let map = |list, func|
   let results = list_of(size(list));
   let i = 0;
 
@@ -8,6 +8,6 @@ map = |list, func|
   end
 
   results
-end
+end;
 
 map([4, 56, 67, 34, 34], |a| a % 2 end)

@@ -1,4 +1,4 @@
-fizzbuzz = |a|:
+let fizzbuzz = |a|
   let i = 0;
 
   while i < 100:

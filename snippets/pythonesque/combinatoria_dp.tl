@@ -1,11 +1,11 @@
-min = |a, b|
-  if a > b: a else b end
-end
-
-comb = |n, k|
+let comb = |n, k|
   if k > n:
     error("N debe ser mayor o igual que K")
   end
+
+  let min = |a, b|
+    if a > b: a else b end
+  end;
 
   temp = list_of(k + 1);
 

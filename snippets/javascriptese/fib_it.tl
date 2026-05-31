@@ -1,4 +1,4 @@
-fib = |cnt| {
+let fib = |cnt| {
   let a = 0;
   let b = 1;
   let temp;
@@ -12,4 +12,4 @@ fib = |cnt| {
   }
 
   return b
-end
+}
