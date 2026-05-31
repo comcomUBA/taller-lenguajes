@@ -10,4 +10,4 @@ map = |list, func|
   results
 end
 
-map([4, 56, 67, 34, 34], |a| 2 % 5 end)
+map([4, 56, 67, 34, 34], |a| a % 2 end)
