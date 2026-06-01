@@ -3,11 +3,11 @@ let function = |a, b, c|
     let number  = 3.14;
     let boolean = true;
 
-    if a == number:
+    if a == number then
         print("a is pi");
     end
 
-    while b > 0:
+    while b > 0 do
         print("b is currently: ", b);
         b = b - 1
     end

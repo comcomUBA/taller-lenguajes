@@ -8,7 +8,7 @@ let bfs = |adj_list, visit| {
     if not contains(visited, node) {
       visit(node);
       push(visited, node);
-      concat(queue, adj_list[node])
+      concat(queue, adj_list[node]);
     }
   }
 };

@@ -11,7 +11,7 @@ let comb = |n, k|
 
   let i = 0;
 
-  while k >= i:
+  while k >= i do
     set(temp, i, 0);
     i = i + 1
   end
@@ -19,9 +19,9 @@ let comb = |n, k|
   set(temp, 0, 1);
 
   i = 1;
-  while n >= i:
+  while n >= i do
     let j = min(i, k);
-    while j > 0:
+    while j > 0 do
       set(temp, j, temp[j] + temp[j - 1]);
       i = i - 1
     end

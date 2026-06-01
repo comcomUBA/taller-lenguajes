@@ -4,10 +4,10 @@ let map = |list, func| {
 
   while i < size(list) {
     set(results, i, func(temp[i]));
-    i = i + 1
+    i = i + 1;
   }
 
-  results
+  results;
 };
 
 map([4, 56, 67, 34, 34], |a| { a % 2 })

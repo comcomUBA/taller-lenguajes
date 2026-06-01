@@ -9,6 +9,6 @@ let function = |a, b, c| {
 
     while b > 0 {
         print("b is currently: ", b);
-        b = b - 1
+        b = b - 1;
     }
 }

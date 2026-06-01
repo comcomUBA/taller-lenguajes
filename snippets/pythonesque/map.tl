@@ -2,7 +2,7 @@ let map = |list, func|
   let results = list_of(size(list));
   let i = 0;
 
-  while i < size(list):
+  while i < size(list) do
     set(results, i, func(temp[i]));
     i = i + 1
   end

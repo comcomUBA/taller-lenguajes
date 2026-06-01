@@ -3,14 +3,14 @@ let fizzbuzz = |a| {
 
   while i < 100 {
     if (i % 3 == 0) && (i % 5 == 0) {
-        print("FizzBuzz\n")
+        print("FizzBuzz\n");
     } elsif i % 3 == 0 {
-      print("Fizz\n")
+      print("Fizz\n");
     } elsif i % 5 == 0 {
-      print("Buzz\n")
+      print("Buzz\n");
     } else {
       print(i);
-      print("\n")
+      print("\n");
     }
 
     i = i + 1
@@ -23,20 +23,20 @@ let fizzbuzz = |a| {
 
   while i < 100 {
     if (i % 3 == 0) && (i % 5 == 0) {
-        print("FizzBuzz\n")
+        print("FizzBuzz\n");
     } else {
       if i % 3 == 0 {
-        print("Fizz\n")
+        print("Fizz\n");
       } else {
         if i % 5 == 0 {
-          print("Buzz\n")
+          print("Buzz\n");
         } else {
           print(i);
-          print("\n")
+          print("\n");
         }
       }
     }
-    i = i + 1
+    i = i + 1;
   }
 }
 

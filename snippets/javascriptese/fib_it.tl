@@ -8,8 +8,8 @@ let fib = |cnt| {
     b = a + b;
     a = temp;
 
-    cnt = cnt - 1
+    cnt = cnt - 1;
   }
 
-  return b
+  return b;
 }

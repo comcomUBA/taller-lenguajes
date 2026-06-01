@@ -1,6 +1,6 @@
 let comb = |n, k| {
   if k > n {
-    error("N debe ser mayor o igual que K")
+    error("N debe ser mayor o igual que K");
   }
 
   let min = |a, b| {
@@ -13,8 +13,8 @@ let comb = |n, k| {
 
   while k >= i {
     set(temp, i, 0);
-    i = i + 1
-  end
+    i = i + 1;
+  }
   set(temp, 0, 1);
 
   i = 1;
@@ -22,9 +22,9 @@ let comb = |n, k| {
     let j = min(i, k);
     while j > 0 {
       set(temp, j, temp[j] + temp[j - 1]);
-      i = i - 1
+      i = i - 1;
     }
-    i = i + 1
+    i = i + 1;
   }
 
   return temp[k]
