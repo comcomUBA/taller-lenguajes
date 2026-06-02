@@ -1,9 +1,10 @@
 let fib = |cnt| {
   let a = 0;
   let b = 1;
-  let temp;
 
   while cnt > 0 {
+    let temp;
+
     temp = b;
     b = a + b;
     a = temp;

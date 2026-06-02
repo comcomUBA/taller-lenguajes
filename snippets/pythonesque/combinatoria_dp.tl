@@ -4,11 +4,7 @@ let comb = |n, k| do
   end
 
   let min = |a, b| do
-    if a > b then
-      return a
-    else
-      return b
-    end
+    if a > b then return a else return b end
   end;
 
   temp = list_of(k + 1);
@@ -19,7 +15,6 @@ let comb = |n, k| do
     set(temp, i, 0);
     i = i + 1;
   end
-  set(temp, 0, 1);
   set(temp, 0, 1);
 
   i = 1;
@@ -33,4 +28,4 @@ let comb = |n, k| do
   end
 
   return get(temp, k);
-end
+end;

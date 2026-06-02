@@ -7,7 +7,7 @@ let map = |list, func| {
     i = i + 1;
   }
 
-  results;
+  return results;
 };
 
 map([4, 56, 67, 34, 34], |a| { a % 2; });

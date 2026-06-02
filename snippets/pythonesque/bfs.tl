@@ -8,9 +8,9 @@ let bfs = |adj_list, visit| do
     if not contains(visited, node) then
       visit(node);
       push(visited, node);
-      concat(queue, set(getadj_list, node));
+      concat(queue, get(adj_list, node));
     end
   end
 end;
 
-bfs([[1, 2], [0, 1, 3], [0, 3], [1, 3]], print)
+bfs([[1, 2], [0, 1, 3], [0, 3], [1, 3]], print);

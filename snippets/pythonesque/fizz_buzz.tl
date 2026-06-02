@@ -10,9 +10,9 @@ let fizzbuzz = |a| do
       print("Buzz\n")
     else
       print(i);
-      print("\n")
+      print("\n");
     end
 
-    i = i + 1
+    i = i + 1;
   end
 end

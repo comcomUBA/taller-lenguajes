@@ -3,7 +3,7 @@ let function = |a, b, c| {
     let number  = 3.14;
     let boolean = true;
 
-    if a = number {
+    if a == number {
         print("a is pi");
     }
 
