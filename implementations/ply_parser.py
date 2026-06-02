@@ -1218,20 +1218,24 @@ def main(argv: list[str]) -> int:
             ok = False
             print(f"Syntax error: {exc}", file=sys.stderr)
             continue
+        print(f"== {filename}: JSON ==")
         print(json.dumps(ast_to_data(tree), indent=2, ensure_ascii=False))
 
-    visitor = ASTPrinter()
-    for statement in tree:
-        statement.accept(visitor)
+        print(f"== {filename}: AST ==")
+        visitor = ASTPrinter()
+        for statement in tree:
+            statement.accept(visitor)
 
-    visitor = ASTCompiler()
-    for statement in tree:
-        statement.accept(visitor)
-    module_code = VMFunc(visitor.instructions)
+        visitor = ASTCompiler()
+        for statement in tree:
+            statement.accept(visitor)
+        module_code = VMFunc(visitor.instructions)
 
-    module_code.print_bytecode()
+        print(f"== {filename}: Bytecode ==")
+        module_code.print_bytecode()
 
-    VM(module_code).run()
+        print(f"== {filename}: Execution ==")
+        VM(module_code).run()
 
     return 0 if ok else 1
 
