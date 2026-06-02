@@ -1,9 +1,3 @@
-
-|asd| asd + 1
-
-
-if cond do return 123 end
-
 let bfs = |adj_list, visit| do
   let queue = [0];
   let visited = [];
@@ -14,7 +8,7 @@ let bfs = |adj_list, visit| do
     if not contains(visited, node) then
       visit(node);
       push(visited, node);
-      concat(queue, adj_list[node])
+      concat(queue, set(getadj_list, node));
     end
   end
 end;

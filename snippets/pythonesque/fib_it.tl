@@ -1,4 +1,4 @@
-let fib = |cnt|
+let fib = |cnt| do
   let a = 0;
   let b = 1;
 
@@ -9,8 +9,8 @@ let fib = |cnt|
     b = a + b;
     a = temp;
 
-    cnt = cnt - 1
+    cnt = cnt - 1;
   end
 
-  return b
+  return b;
 end

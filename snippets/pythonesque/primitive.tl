@@ -1,4 +1,4 @@
-let function = |a, b, c|
+let function = |a, b, c| do
     let string  = "hello, world";
     let number  = 3.14;
     let boolean = true;
@@ -9,6 +9,6 @@ let function = |a, b, c|
 
     while b > 0 do
         print("b is currently: ", b);
-        b = b - 1
+        b = b - 1;
     end
-end
+end;

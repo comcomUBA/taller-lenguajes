@@ -1,13 +1,13 @@
-let map = |list, func|
+let map = |list, func| do
   let results = list_of(size(list));
   let i = 0;
 
   while i < size(list) do
-    set(results, i, func(temp[i]));
-    i = i + 1
+    set(results, i, func(get(temp, i)));
+    i = i + 1;
   end
 
-  results
+  return results;
 end;
 
-map([4, 56, 67, 34, 34], |a| a % 2 end)
+map([4, 56, 67, 34, 34], |a| a % 2)
