@@ -811,20 +811,14 @@ class ASTCompiler:
         self.do('DEFINE', let.name)
 
     def visit_lambda(self, _lambda):
-        lambda_code = self.new_label()
-        after_lambda_code = self.new_label()
-        self.do('JMP', after_lambda_code)
-        
-        self.resolve(lambda_code)
+        lambda_visitor = ASTCompiler()
         for param in reversed(_lambda.params):
-            self.do('DEFINE', param)
-        self.visit(_lambda.body)
+            lambda_visitor.do('DEFINE', param)
+        lambda_visitor.visit(_lambda.body)
+        lambda_visitor.do('PUSH', None)
+        lambda_visitor.do('RETURN')
 
-        self.do('PUSH', None)
-        self.do('RETURN')
-
-        self.resolve(after_lambda_code)
-        self.do('CREATE_FUNC', lambda_code)
+        self.do('PUSH', VMFunc(lambda_visitor.instructions))
 
     def visit_block(self, block):
         for statement in block.statements:
@@ -944,10 +938,27 @@ class Frame:
 @dataclass
 class VMFunc:
     instructions: list[Any]
-    target: int
 
     def __repr__(self):
-        return f'VMFunc(instructions={id(self.instructions)!r}, target={self.target!r})'
+        return f'VMFunc(instructions={id(self.instructions)!r})'
+
+    def print_bytecode(self):
+        visited = set()
+        queue = [self]
+        while queue:
+            func = queue.pop()
+            if id(func) in visited:
+                continue
+            visited.add(id(func))
+
+            print(f'{func}:')
+            for i, (instr, *args) in enumerate(func.instructions):
+                instr_args = ', '.join(repr(arg) for arg in args)
+                print(f'{i:3} {instr} {instr_args}')
+
+                for arg in args:
+                    if isinstance(arg, VMFunc):
+                        queue.append(arg)
 
 
 @dataclass
@@ -993,6 +1004,25 @@ class Concat:
 class Get:
     def invoke(self, vm, arr, idx):
         vm.frame.push(arr[idx])
+
+
+@dataclass
+class Set:
+    def invoke(self, vm, arr, idx, value):
+        arr[idx] = value
+        vm.frame.push(value)
+
+
+@dataclass
+class ListOf:
+    def invoke(self, vm, size):
+        vm.frame.push([0] * size)
+
+
+@dataclass
+class Size:
+    def invoke(self, vm, arr):
+        vm.frame.push(len(arr))
 
 
 @dataclass
@@ -1061,7 +1091,7 @@ class Resume:
 
 
 class VM:
-    def __init__(self, instructions):
+    def __init__(self, vm_func):
         self.global_scope = {
             'print': Print(),
             'is_empty': IsEmpty(),
@@ -1070,11 +1100,14 @@ class VM:
             'push': Push(),
             'concat': Concat(),
             'get': Get(),
+            'set': Set(),
+            'list_of': ListOf(),
+            'size': Size(),
             'start': Start(),
             'yield': Yield(),
             'resume': Resume(),
         }
-        self.frame = Frame(instructions, 0, None, self.global_scope, [])
+        self.frame = Frame(vm_func.instructions, 0, None, self.global_scope, [])
 
     def run(self):
         while True:
@@ -1088,8 +1121,6 @@ class VM:
             match ins:
                 case ('JMP', Label(target=target)):
                     self.frame.pc = target
-                case ('CREATE_FUNC', Label(target=target)):
-                    self.frame.push(VMFunc(self.frame.instructions, target))
                 case ('DEFINE', var_name):
                     value = self.frame.pop()
                     self.frame.local_scope[var_name] = value
@@ -1113,7 +1144,7 @@ class VM:
                     func = self.frame.pop()
 
                     if isinstance(func, VMFunc):
-                        self.frame = Frame(func.instructions, func.target, self.frame, {}, args)
+                        self.frame = Frame(func.instructions, 0, self.frame, {}, args)
                     else:
                         func.invoke(self, *args)
                 case ('UNOP', 'not'):
@@ -1150,6 +1181,10 @@ class VM:
                     rhs = self.frame.pop()
                     lhs = self.frame.pop()
                     self.frame.push(lhs == rhs)
+                case ('BINOP', '%'):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs % rhs)
                 case ('ASSIGN', var_name):
                     value = self.frame.pop()
                     if var_name in self.frame.local_scope:
@@ -1192,10 +1227,11 @@ def main(argv: list[str]) -> int:
     visitor = ASTCompiler()
     for statement in tree:
         statement.accept(visitor)
-    for i, instr in enumerate(visitor.instructions):
-        print(f'{i:3}', *instr)
+    module_code = VMFunc(visitor.instructions)
 
-    VM(visitor.instructions).run()
+    module_code.print_bytecode()
+
+    VM(module_code).run()
 
     return 0 if ok else 1
 
