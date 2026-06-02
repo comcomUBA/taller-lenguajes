@@ -11,4 +11,4 @@ let function = |a, b, c| {
         print("b is currently: ", b);
         b = b - 1;
     }
-}
+};

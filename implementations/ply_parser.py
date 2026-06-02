@@ -14,13 +14,11 @@ import ply.yacc as yacc
 
 
 @dataclass
-class Program:
-    statements: list[Any]
-
-
-@dataclass
 class Block:
     statements: list[Any]
+
+    def accept(self, visitor):
+        return visitor.visit_block(self)
 
 
 @dataclass
@@ -28,10 +26,24 @@ class Let:
     name: str
     value: Any | None
 
+    def accept(self, visitor):
+        return visitor.visit_let(self)
+
 
 @dataclass
 class Return:
     value: Any | None
+
+    def accept(self, visitor):
+        return visitor.visit_return(self)
+
+
+@dataclass
+class ExprStmt:
+    expr: Any
+
+    def accept(self, visitor):
+        return visitor.visit_expr_stmt(self)
 
 
 @dataclass
@@ -41,16 +53,17 @@ class If:
     elsif_parts: list[tuple[Any, Block]]
     else_body: Block | None
 
+    def accept(self, visitor):
+        return visitor.visit_if(self)
+
 
 @dataclass
 class While:
     condition: Any
     body: Block
 
-
-@dataclass
-class ExprStmt:
-    expr: Any
+    def accept(self, visitor):
+        return visitor.visit_while(self)
 
 
 @dataclass
@@ -58,20 +71,32 @@ class Assign:
     target: Any
     value: Any
 
+    def accept(self, visitor):
+        return visitor.visit_assign(self)
+  
 
 @dataclass
 class Var:
     name: str
+
+    def accept(self, visitor):
+        return visitor.visit_var(self)
 
 
 @dataclass
 class Literal:
     value: Any
 
+    def accept(self, visitor):
+        return visitor.visit_literal(self)
+
 
 @dataclass
-class ArrayLiteral:
+class Array:
     elements: list[Any]
+
+    def accept(self, visitor):
+        return visitor.visit_array(self)
 
 
 @dataclass
@@ -79,30 +104,34 @@ class Lambda:
     params: list[str]
     body: Block
 
+    def accept(self, visitor):
+        return visitor.visit_lambda(self)
 
 @dataclass
 class Call:
     func: Any
     args: list[Any]
 
-
-@dataclass
-class Index:
-    collection: Any
-    index: Any
+    def accept(self, visitor):
+        return visitor.visit_call(self)
 
 
 @dataclass
-class Binary:
+class BinaryOp:
     op: str
     left: Any
     right: Any
 
+    def accept(self, visitor):
+        return visitor.visit_binary_op(self)
 
 @dataclass
-class Unary:
+class UnaryOp:
     op: str
     expr: Any
+
+    def accept(self, visitor):
+        return visitor.visit_unary_op(self)
 
 
 # -----------------------------------------------------------------------------
@@ -334,12 +363,7 @@ class TLLexer:
 # -----------------------------------------------------------------------------
 
 
-start = "program"
-
-
-def p_program(p):
-    """program : stmt_list_opt"""
-    p[0] = Program(p[1])
+start = "stmt_list_opt"
 
 
 def p_stmt_list_opt(p):
@@ -386,7 +410,7 @@ def p_simple_stmt_return(p):
 
 def p_simple_stmt_expr(p):
     """simple_stmt : expression"""
-    p[0] = p[1] if isinstance(p[1], Assign) else ExprStmt(p[1])
+    p[0] = ExprStmt(p[1])
 
 
 def p_block(p):
@@ -447,11 +471,6 @@ def p_lvalue_var(p):
     p[0] = Var(p[1])
 
 
-def p_lvalue_index(p):
-    """lvalue : postfix LBRACKET expression RBRACKET"""
-    p[0] = Index(p[1], p[3])
-
-
 def p_logic_or_plain(p):
     """logic_or : logic_and"""
     p[0] = p[1]
@@ -460,7 +479,7 @@ def p_logic_or_plain(p):
 def p_logic_or_binary(p):
     """logic_or : logic_or OR logic_and
                 | logic_or OROR logic_and"""
-    p[0] = Binary(p[2], p[1], p[3])
+    p[0] = BinaryOp(p[2], p[1], p[3])
 
 
 def p_logic_and_plain(p):
@@ -471,7 +490,7 @@ def p_logic_and_plain(p):
 def p_logic_and_binary(p):
     """logic_and : logic_and AND equality
                  | logic_and ANDAND equality"""
-    p[0] = Binary(p[2], p[1], p[3])
+    p[0] = BinaryOp(p[2], p[1], p[3])
 
 
 def p_equality_plain(p):
@@ -482,7 +501,7 @@ def p_equality_plain(p):
 def p_equality_binary(p):
     """equality : equality EQ comparison
                 | equality NE comparison"""
-    p[0] = Binary(p[2], p[1], p[3])
+    p[0] = BinaryOp(p[2], p[1], p[3])
 
 
 def p_comparison_plain(p):
@@ -495,7 +514,7 @@ def p_comparison_binary(p):
                   | comparison LE term
                   | comparison GT term
                   | comparison GE term"""
-    p[0] = Binary(p[2], p[1], p[3])
+    p[0] = BinaryOp(p[2], p[1], p[3])
 
 
 def p_term_plain(p):
@@ -506,7 +525,7 @@ def p_term_plain(p):
 def p_term_binary(p):
     """term : term PLUS factor
             | term MINUS factor"""
-    p[0] = Binary(p[2], p[1], p[3])
+    p[0] = BinaryOp(p[2], p[1], p[3])
 
 
 def p_factor_plain(p):
@@ -518,7 +537,7 @@ def p_factor_binary(p):
     """factor : factor TIMES unary
               | factor DIVIDE unary
               | factor MOD unary"""
-    p[0] = Binary(p[2], p[1], p[3])
+    p[0] = BinaryOp(p[2], p[1], p[3])
 
 
 def p_unary_plain(p):
@@ -529,7 +548,7 @@ def p_unary_plain(p):
 def p_unary_op(p):
     """unary : NOT unary
              | MINUS unary"""
-    p[0] = Unary(p[1], p[2])
+    p[0] = UnaryOp(p[1], p[2])
 
 
 def p_postfix_plain(p):
@@ -540,11 +559,6 @@ def p_postfix_plain(p):
 def p_postfix_call(p):
     """postfix : postfix LPAREN arg_list_opt RPAREN"""
     p[0] = Call(p[1], p[3])
-
-
-def p_postfix_index(p):
-    """postfix : postfix LBRACKET expression RBRACKET"""
-    p[0] = Index(p[1], p[3])
 
 
 def p_primary_id(p):
@@ -567,7 +581,7 @@ def p_primary_group(p):
 
 
 def p_primary_array(p):
-    """primary : array_literal"""
+    """primary : array"""
     p[0] = p[1]
 
 
@@ -576,9 +590,9 @@ def p_primary_lambda(p):
     p[0] = p[1]
 
 
-def p_array_literal(p):
-    """array_literal : LBRACKET arg_list_opt RBRACKET"""
-    p[0] = ArrayLiteral(p[2])
+def p_array(p):
+    """array : LBRACKET arg_list_opt RBRACKET"""
+    p[0] = Array(p[2])
 
 
 def p_lambda_literal(p):
@@ -637,12 +651,12 @@ def p_error(p):
 parser = yacc.yacc(debug=False, write_tables=False)
 
 
-def parse(source: str) -> Program:
+def parse(source: str) -> list[Any]:
     lexer = TLLexer()
     return parser.parse(source, lexer=lexer)
 
 
-def parse_file(path: str) -> Program:
+def parse_file(path: str) -> list[Any]:
     with open(path, "r", encoding="utf-8") as f:
         return parse(f.read())
 
@@ -660,6 +674,504 @@ def ast_to_data(node: Any) -> Any:
     return node
 
 
+class ASTPrinter:
+    def __init__(self, tab='  '):
+        self.tab = tab
+        self.ident = 0
+
+    def print(self, *args):
+        print(f'{self.tab * self.ident}{' '.join(str(arg) for arg in args)}')
+
+    def visit(self, node):
+        self.ident += 1
+        node.accept(self)
+        self.ident -= 1
+
+    def visit_let(self, let):
+        self.print('Let', let.name)
+        if let.value is not None:
+            self.visit(let.value)
+
+    def visit_lambda(self, _lambda):
+        self.print('Lambda', *_lambda.params)
+        self.visit(_lambda.body)
+
+    def visit_block(self, block):
+        self.print('Block')
+        for statement in block.statements:
+            self.visit(statement)
+
+    def visit_literal(self, literal):
+        self.print('Literal', repr(literal.value))
+
+    def visit_if(self, _if):
+        self.print('If')
+        self.ident += 1
+        self.print('#condition')
+        self.visit(_if.condition)
+        self.print('#then')
+        self.visit(_if.then_body)
+        for (cond, block) in _if.elsif_parts:
+            self.print('#elsif_condition')
+            self.visit(cond)
+            self.print('#elsif_then')
+            self.visit(block)
+        if _if.else_body is not None:
+            self.print('#else')
+            self.visit(_if.else_body)
+        self.ident -= 1
+
+    def visit_while(self, _while):
+        self.print('While')
+        self.ident += 1
+        self.print('#condition')
+        self.visit(_while.condition)
+        self.print('#body')
+        self.visit(_while.body)
+        self.ident -= 1
+
+    def visit_assign(self, assign):
+        self.print('Assign')
+        self.ident += 1
+        self.print('#target')
+        self.visit(assign.target)
+        self.print('#value')
+        self.visit(assign.value)
+        self.ident -= 1
+
+    def visit_var(self, var):
+        self.print('Var', var.name)
+
+    def visit_call(self, call):
+        self.print('Call')
+        self.ident += 1
+        self.print('#func')
+        self.visit(call.func)
+        self.print('#args')
+        for arg in call.args:
+            self.visit(arg)
+
+    def visit_binary_op(self, binary_op):
+        self.print('BinaryOp', binary_op.op)
+        self.ident += 1
+        self.print('#left')
+        self.visit(binary_op.left)
+        self.print('#right')
+        self.visit(binary_op.right)
+        self.ident -= 1
+
+    def visit_array(self, array):
+        self.print('Array')
+        for elem in array.elements:
+            self.visit(elem)
+
+    def visit_unary_op(self, unary_op):
+        self.print('UnaryOp', unary_op.op)
+        self.visit(unary_op.expr)
+
+    def visit_return(self, _return):
+        self.print('Return')
+        if _return.value is not None:
+            self.visit(_return.value)
+
+    def visit_expr_stmt(self, expr_stmt):
+        self.print('ExprStmt')
+        self.visit(expr_stmt.expr)
+
+@dataclass
+class Label:
+    target: int | None
+
+
+class ASTCompiler:
+    def __init__(self):
+        self.labels = []
+        self.instructions = []
+
+    def new_label(self):
+        result = Label(None)
+        self.labels.append(result)
+        return result
+
+    def resolve(self, label):
+        assert label.target is None, "Cannot resolve an already resolved label"
+        label.target = len(self.instructions)
+
+    def do(self, *args):
+        self.instructions.append(tuple(args))
+
+    def visit(self, node):
+        node.accept(self)
+
+    def visit_let(self, let):
+        if let.value is not None:
+            self.visit(let.value)
+        else:
+            self.do('PUSH', None)
+        self.do('DEFINE', let.name)
+
+    def visit_lambda(self, _lambda):
+        lambda_code = self.new_label()
+        after_lambda_code = self.new_label()
+        self.do('JMP', after_lambda_code)
+        
+        self.resolve(lambda_code)
+        for param in reversed(_lambda.params):
+            self.do('DEFINE', param)
+        self.visit(_lambda.body)
+
+        self.do('PUSH', None)
+        self.do('RETURN')
+
+        self.resolve(after_lambda_code)
+        self.do('CREATE_FUNC', lambda_code)
+
+    def visit_block(self, block):
+        for statement in block.statements:
+            self.visit(statement)
+
+    def visit_literal(self, literal):
+        self.do('PUSH', literal.value)
+
+    def visit_if(self, _if):
+        after_if = self.new_label()
+        self.visit(_if.condition)
+
+        condition_failed = self.new_label()
+        self.do('JMP_IF_FALSE', condition_failed)
+        self.visit(_if.then_body)
+        self.do('JMP', after_if)
+
+        for (cond, block) in _if.elsif_parts:
+            self.resolve(condition_failed)
+            self.visit(cond)
+
+            condition_failed = self.new_label()
+            self.do('JMP_IF_FALSE', condition_failed)
+            self.visit(block)
+            self.do('JMP', after_if)
+
+        self.resolve(condition_failed)
+        if _if.else_body is not None:
+            self.visit(_if.else_body)
+        self.resolve(after_if)
+
+    def visit_while(self, _while):
+        after_loop = self.new_label()
+        guard = self.new_label()
+        self.resolve(guard)
+        self.visit(_while.condition)
+        self.do('JMP_IF_FALSE', after_loop)
+        self.visit(_while.body)
+        self.do('JMP', guard)
+        self.resolve(after_loop)
+
+    def visit_assign(self, assign):
+        self.visit(assign.value)
+        self.do('ASSIGN', assign.target.name)
+
+    def visit_var(self, var):
+        self.do('LOAD', var.name)
+
+    def visit_call(self, call):
+        self.visit(call.func)
+        for arg in call.args:
+            self.visit(arg)
+        self.do('CALL', len(call.args))
+
+    def visit_binary_op(self, binary_op):
+        if binary_op.op == 'or':
+            after_right = self.new_label()
+            self.visit(binary_op.left)
+            self.do('DUP')
+            self.do('JMP_IF_TRUE', after_right)
+            self.do('DROP')
+            self.visit(binary_op.right)
+            self.resolve(after_right)
+        elif binary_op.op == 'and':
+            after_right = self.new_label()
+            self.visit(binary_op.left)
+            self.do('DUP')
+            self.do('JMP_IF_FALSE', after_right)
+            self.do('DROP')
+            self.visit(binary_op.right)
+            self.resolve(after_right)
+        else:
+            self.visit(binary_op.left)
+            self.visit(binary_op.right)
+            #FIXME
+            self.do('BINOP', binary_op.op)
+
+    def visit_array(self, array):
+        for elem in array.elements:
+            self.visit(elem)
+        self.do('CREATE_ARRAY', len(array.elements))
+
+    def visit_unary_op(self, unary_op):
+        self.visit(unary_op.expr)
+        #FIXME
+        self.do('UNOP', unary_op.op)
+
+    def visit_return(self, _return):
+        if _return.value is not None:
+            self.visit(_return.value)
+        else:
+            self.do('PUSH', None)
+        self.do('RETURN')
+
+    def visit_expr_stmt(self, expr_stmt):
+        self.visit(expr_stmt.expr)
+        self.do('DROP')
+
+
+@dataclass
+class Frame:
+    instructions: list[Any]
+    pc: int
+    parent: Frame
+    local_scope: dict[str, Any]
+    stack: list[Any]
+
+    def push(self, value):
+        self.stack.append(value)
+
+    def pop(self):
+        return self.stack.pop()
+
+    def __repr__(self):
+        return f'Frame(id={id(self)}, instructions={id(self.instructions)}, pc={self.pc!r}, parent={self.parent!r}, local_scope={self.local_scope!r}, stack={self.stack!r})'
+
+@dataclass
+class VMFunc:
+    instructions: list[Any]
+    target: int
+
+    def __repr__(self):
+        return f'VMFunc(instructions={id(self.instructions)!r}, target={self.target!r})'
+
+
+@dataclass
+class Print:
+    def invoke(self, vm, *args):
+        print(*args)
+        vm.frame.push(None)
+
+
+@dataclass
+class IsEmpty:
+    def invoke(self, vm, arr):
+        vm.frame.push(len(arr) == 0)
+
+
+@dataclass
+class Pop:
+    def invoke(self, vm, arr):
+        vm.frame.push(arr.pop())
+
+
+@dataclass
+class Contains:
+    def invoke(self, vm, arr, value):
+        vm.frame.push(value in arr)
+
+
+@dataclass
+class Push:
+    def invoke(self, vm, arr, value):
+        arr.append(value)
+        vm.frame.push(arr)
+
+
+@dataclass
+class Concat:
+    def invoke(self, vm, arr, another_arr):
+        arr.extend(another_arr)
+        vm.frame.push(arr)
+
+
+@dataclass
+class Get:
+    def invoke(self, vm, arr, idx):
+        vm.frame.push(arr[idx])
+
+
+@dataclass
+class CoStart:
+    yield_or_resume_to: Frame | CoStart | None
+    running: bool
+
+    def __repr__(self):
+        if self.running:
+            return f'CoStart(id={id(self)}, yield_to={id(self.yield_or_resume_to)})'
+        else:
+            return f'CoStart(id={id(self)}, resume_to={id(self.yield_or_resume_to)})'
+
+
+@dataclass
+class Start:
+    def invoke(self, vm, func, args):
+        assert isinstance(func, VMFunc), "start() only works for VM functions"
+        co_start = CoStart(func, False)
+
+        co_program = [
+            ('DROP',),
+            ('CALL', len(args)),
+            ('CALL', 1)
+        ]
+        co_start.yield_or_resume_to = Frame(co_program, 0, co_start, {}, [Yield(), func, *args])
+        vm.frame.push(co_start)
+
+
+@dataclass
+class Yield:
+    def invoke(self, vm, value):
+        co_frame = vm.frame
+        while not isinstance(co_frame, CoStart) and co_frame is not None:
+            co_frame = co_frame.parent
+
+        assert co_frame is not None, "yield() could not find a running coroutine"
+        assert co_frame.running, "yield() only works for running coroutines"
+
+        yield_to = co_frame.yield_or_resume_to
+        resume_to = vm.frame
+        co_frame.yield_or_resume_to = resume_to
+        co_frame.running = False
+
+        vm.frame = yield_to
+        vm.frame.push(value)
+
+
+@dataclass
+class Resume:
+    def invoke(self, vm, co_frame, value):
+        assert isinstance(co_frame, CoStart), "resume() only works for coroutines"
+        assert not co_frame.running, "Cannot resume running coroutine"
+
+        yield_to = vm.frame
+        resume_to = co_frame.yield_or_resume_to
+
+        assert resume_to.pc == 0 or resume_to.parent is not co_frame, "Cannot resume finished coroutine"
+
+        co_frame.yield_or_resume_to = yield_to
+        co_frame.running = True
+
+        vm.frame = resume_to
+        vm.frame.push(value)
+        return value
+
+
+class VM:
+    def __init__(self, instructions):
+        self.global_scope = {
+            'print': Print(),
+            'is_empty': IsEmpty(),
+            'pop': Pop(),
+            'contains': Contains(),
+            'push': Push(),
+            'concat': Concat(),
+            'get': Get(),
+            'start': Start(),
+            'yield': Yield(),
+            'resume': Resume(),
+        }
+        self.frame = Frame(instructions, 0, None, self.global_scope, [])
+
+    def run(self):
+        while True:
+            if self.frame.pc < 0 or len(self.frame.instructions) <= self.frame.pc:
+                break
+
+            ins = self.frame.instructions[self.frame.pc]
+            self.frame.pc += 1
+
+            #print(ins[0], self.frame)
+            if ins[0] == 'JMP':
+                self.frame.pc = ins[1].target
+            elif ins[0] == 'CREATE_FUNC':
+                self.frame.push(VMFunc(self.frame.instructions, ins[1].target))
+            elif ins[0] == 'DEFINE':
+                value = self.frame.pop()
+                self.frame.local_scope[ins[1]] = value
+            elif ins[0] == 'LOAD':
+                var_name = ins[1]
+                if var_name in self.frame.local_scope:
+                    value = self.frame.local_scope[var_name]
+                else:
+                    value = self.global_scope[var_name]
+                self.frame.push(value)
+            elif ins[0] == 'PUSH':
+                self.frame.push(ins[1])
+            elif ins[0] == 'CREATE_ARRAY':
+                num_elems = ins[1]
+                value = []
+                for i in range(num_elems):
+                    value.insert(0, self.frame.pop())
+                self.frame.push(value)
+            elif ins[0] == 'CALL':
+                num_args = ins[1]
+                args = []
+                for i in range(num_args):
+                    args.insert(0, self.frame.pop())
+                func = self.frame.pop()
+
+                if isinstance(func, VMFunc):
+                    self.frame = Frame(func.instructions, func.target, self.frame, {}, args)
+                else:
+                    func.invoke(self, *args)
+            elif ins[0] == 'UNOP' and ins[1] == 'not':
+                self.frame.push(not self.frame.pop())
+            elif ins[0] == 'JMP_IF_FALSE':
+                if self.frame.pop() == False:
+                    self.frame.pc = ins[1].target
+            elif ins[0] == 'JMP_IF_TRUE':
+                if self.frame.pop() == True:
+                    self.frame.pc = ins[1].target
+            elif ins[0] == 'DROP':
+                self.frame.pop()
+            elif ins[0] == 'RETURN':
+                result = self.frame.pop()
+                self.frame = self.frame.parent
+                self.frame.push(result)
+            elif ins[0] == 'BINOP' and ins[1] == '>':
+                rhs = self.frame.pop()
+                lhs = self.frame.pop()
+                self.frame.push(lhs > rhs)
+            elif ins[0] == 'BINOP' and ins[1] == '<':
+                rhs = self.frame.pop()
+                lhs = self.frame.pop()
+                self.frame.push(lhs < rhs)
+            elif ins[0] == 'BINOP' and ins[1] == '+':
+                rhs = self.frame.pop()
+                lhs = self.frame.pop()
+                self.frame.push(lhs + rhs)
+            elif ins[0] == 'BINOP' and ins[1] == '-':
+                rhs = self.frame.pop()
+                lhs = self.frame.pop()
+                self.frame.push(lhs - rhs)
+            elif ins[0] == 'BINOP' and ins[1] == '==':
+                rhs = self.frame.pop()
+                lhs = self.frame.pop()
+                self.frame.push(lhs == rhs)
+            elif ins[0] == 'ASSIGN':
+                var_name = ins[1]
+                value = self.frame.pop()
+                if var_name in self.frame.local_scope:
+                    self.frame.local_scope[var_name] = value
+                elif var_name in self.global_scope:
+                    self.global_scope[var_name] = value
+                else:
+                    print("UNDEFINED", var_name)
+                    break
+                self.frame.push(value)
+            elif ins[0] == 'DUP':
+                value = self.frame.pop()
+                self.frame.push(value)
+                self.frame.push(value)
+            else:
+                print('UNKNOWN', ins)
+                break
+
+
 def main(argv: list[str]) -> int:
     if not argv:
         print("Usage: python tl_ply_parser.py FILE.tl [FILE.tl ...]", file=sys.stderr)
@@ -675,6 +1187,18 @@ def main(argv: list[str]) -> int:
             print(f"Syntax error: {exc}", file=sys.stderr)
             continue
         print(json.dumps(ast_to_data(tree), indent=2, ensure_ascii=False))
+
+    visitor = ASTPrinter()
+    for statement in tree:
+        statement.accept(visitor)
+
+    visitor = ASTCompiler()
+    for statement in tree:
+        statement.accept(visitor)
+    for i, instr in enumerate(visitor.instructions):
+        print(f'{i:3}', *instr)
+
+    VM(visitor.instructions).run()
 
     return 0 if ok else 1
 
