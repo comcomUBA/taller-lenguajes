@@ -1085,91 +1085,88 @@ class VM:
             self.frame.pc += 1
 
             #print(ins[0], self.frame)
-            if ins[0] == 'JMP':
-                self.frame.pc = ins[1].target
-            elif ins[0] == 'CREATE_FUNC':
-                self.frame.push(VMFunc(self.frame.instructions, ins[1].target))
-            elif ins[0] == 'DEFINE':
-                value = self.frame.pop()
-                self.frame.local_scope[ins[1]] = value
-            elif ins[0] == 'LOAD':
-                var_name = ins[1]
-                if var_name in self.frame.local_scope:
-                    value = self.frame.local_scope[var_name]
-                else:
-                    value = self.global_scope[var_name]
-                self.frame.push(value)
-            elif ins[0] == 'PUSH':
-                self.frame.push(ins[1])
-            elif ins[0] == 'CREATE_ARRAY':
-                num_elems = ins[1]
-                value = []
-                for i in range(num_elems):
-                    value.insert(0, self.frame.pop())
-                self.frame.push(value)
-            elif ins[0] == 'CALL':
-                num_args = ins[1]
-                args = []
-                for i in range(num_args):
-                    args.insert(0, self.frame.pop())
-                func = self.frame.pop()
-
-                if isinstance(func, VMFunc):
-                    self.frame = Frame(func.instructions, func.target, self.frame, {}, args)
-                else:
-                    func.invoke(self, *args)
-            elif ins[0] == 'UNOP' and ins[1] == 'not':
-                self.frame.push(not self.frame.pop())
-            elif ins[0] == 'JMP_IF_FALSE':
-                if self.frame.pop() == False:
-                    self.frame.pc = ins[1].target
-            elif ins[0] == 'JMP_IF_TRUE':
-                if self.frame.pop() == True:
-                    self.frame.pc = ins[1].target
-            elif ins[0] == 'DROP':
-                self.frame.pop()
-            elif ins[0] == 'RETURN':
-                result = self.frame.pop()
-                self.frame = self.frame.parent
-                self.frame.push(result)
-            elif ins[0] == 'BINOP' and ins[1] == '>':
-                rhs = self.frame.pop()
-                lhs = self.frame.pop()
-                self.frame.push(lhs > rhs)
-            elif ins[0] == 'BINOP' and ins[1] == '<':
-                rhs = self.frame.pop()
-                lhs = self.frame.pop()
-                self.frame.push(lhs < rhs)
-            elif ins[0] == 'BINOP' and ins[1] == '+':
-                rhs = self.frame.pop()
-                lhs = self.frame.pop()
-                self.frame.push(lhs + rhs)
-            elif ins[0] == 'BINOP' and ins[1] == '-':
-                rhs = self.frame.pop()
-                lhs = self.frame.pop()
-                self.frame.push(lhs - rhs)
-            elif ins[0] == 'BINOP' and ins[1] == '==':
-                rhs = self.frame.pop()
-                lhs = self.frame.pop()
-                self.frame.push(lhs == rhs)
-            elif ins[0] == 'ASSIGN':
-                var_name = ins[1]
-                value = self.frame.pop()
-                if var_name in self.frame.local_scope:
+            match ins:
+                case ('JMP', Label(target=target)):
+                    self.frame.pc = target
+                case ('CREATE_FUNC', Label(target=target)):
+                    self.frame.push(VMFunc(self.frame.instructions, target))
+                case ('DEFINE', var_name):
+                    value = self.frame.pop()
                     self.frame.local_scope[var_name] = value
-                elif var_name in self.global_scope:
-                    self.global_scope[var_name] = value
-                else:
-                    print("UNDEFINED", var_name)
+                case ('LOAD', var_name):
+                    if var_name in self.frame.local_scope:
+                        value = self.frame.local_scope[var_name]
+                    else:
+                        value = self.global_scope[var_name]
+                    self.frame.push(value)
+                case ('PUSH', value):
+                    self.frame.push(value)
+                case ('CREATE_ARRAY', num_elems):
+                    value = []
+                    for i in range(num_elems):
+                        value.insert(0, self.frame.pop())
+                    self.frame.push(value)
+                case ('CALL', num_args):
+                    args = []
+                    for i in range(num_args):
+                        args.insert(0, self.frame.pop())
+                    func = self.frame.pop()
+
+                    if isinstance(func, VMFunc):
+                        self.frame = Frame(func.instructions, func.target, self.frame, {}, args)
+                    else:
+                        func.invoke(self, *args)
+                case ('UNOP', 'not'):
+                    self.frame.push(not self.frame.pop())
+                case ('JMP_IF_FALSE', Label(target=target)):
+                    if self.frame.pop() == False:
+                        self.frame.pc = target
+                case ('JMP_IF_TRUE', Label(target=target)):
+                    if self.frame.pop() == True:
+                        self.frame.pc = target
+                case ('DROP',):
+                    self.frame.pop()
+                case ('RETURN',):
+                    result = self.frame.pop()
+                    self.frame = self.frame.parent
+                    self.frame.push(result)
+                case ('BINOP', '>'):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs > rhs)
+                case ('BINOP', '<'):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs < rhs)
+                case ('BINOP', '+'):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs + rhs)
+                case ('BINOP', '-'):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs - rhs)
+                case ('BINOP', '=='):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs == rhs)
+                case ('ASSIGN', var_name):
+                    value = self.frame.pop()
+                    if var_name in self.frame.local_scope:
+                        self.frame.local_scope[var_name] = value
+                    elif var_name in self.global_scope:
+                        self.global_scope[var_name] = value
+                    else:
+                        print("UNDEFINED", var_name)
+                        break
+                    self.frame.push(value)
+                case ('DUP',):
+                    value = self.frame.pop()
+                    self.frame.push(value)
+                    self.frame.push(value)
+                case _:
+                    print('UNKNOWN', ins)
                     break
-                self.frame.push(value)
-            elif ins[0] == 'DUP':
-                value = self.frame.pop()
-                self.frame.push(value)
-                self.frame.push(value)
-            else:
-                print('UNKNOWN', ins)
-                break
 
 
 def main(argv: list[str]) -> int:
