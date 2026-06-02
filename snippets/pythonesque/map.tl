@@ -3,11 +3,11 @@ let map = |list, func| do
   let i = 0;
 
   while i < size(list) do
-    set(results, i, func(get(temp, i)));
+    set(results, i, func(get(list, i)));
     i = i + 1;
   end
 
   return results;
 end;
 
-map([4, 56, 67, 34, 34], |a| do a % 2; end);
+map([4, 56, 67, 34, 34], |a| do return a % 2; end);
