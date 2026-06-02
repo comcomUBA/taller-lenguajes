@@ -73,7 +73,7 @@ class Assign:
 
     def accept(self, visitor):
         return visitor.visit_assign(self)
-  
+
 
 @dataclass
 class Var:
@@ -1149,6 +1149,8 @@ class VM:
                         func.invoke(self, *args)
                 case ('UNOP', 'not'):
                     self.frame.push(not self.frame.pop())
+                case ('UNOP', '-'):
+                    self.frame.push(-self.frame.pop())
                 case ('JMP_IF_FALSE', Label(target=target)):
                     if self.frame.pop() == False:
                         self.frame.pc = target
