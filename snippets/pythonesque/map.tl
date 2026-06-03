@@ -10,4 +10,4 @@ let map = |list, func| do
   return results;
 end;
 
-map([4, 56, 67, 34, 34], |a| do return a % 2; end);
+print(map([-1, 56, 67, 34, 34], |a| do return a % 2; end));

@@ -150,6 +150,7 @@ class LexToken:
 reserved = {
     "let": "LET",
     "if": "IF",
+    "then": "THEN",
     "else": "ELSE",
     "elsif": "ELSIF",
     "while": "WHILE",
@@ -418,8 +419,8 @@ def p_while_stmt(p):
 
 
 def p_if_stmt(p):
-    """if_stmt : IF expression block elsif_parts else_part"""
-    p[0] = If(p[2], p[3], p[4], p[5])
+    """if_stmt : IF expression THEN stmt_list_opt elsif_parts else_part END"""
+    p[0] = If(p[2], Block(p[4]), p[5], p[6])
 
 
 def p_elsif_parts_empty(p):
@@ -428,8 +429,8 @@ def p_elsif_parts_empty(p):
 
 
 def p_elsif_parts_many(p):
-    """elsif_parts : elsif_parts ELSIF expression block"""
-    p[0] = p[1] + [(p[3], p[4])]
+    """elsif_parts : elsif_parts ELSIF expression stmt_list_opt"""
+    p[0] = p[1] + [(p[3], Block(p[4]))]
 
 
 def p_else_part_empty(p):
@@ -437,9 +438,9 @@ def p_else_part_empty(p):
     p[0] = None
 
 
-def p_else_part_block(p):
-    """else_part : ELSE block"""
-    p[0] = p[2]
+def p_else_part_stmts(p):
+    """else_part : ELSE stmt_list_opt"""
+    p[0] = Block(p[2])
 
 
 # Expressions, from lowest to highest precedence.
