@@ -3,11 +3,11 @@ let fizzbuzz = |a| do
 
   while i < 100 do
     if (i % 3 == 0) and (i % 5 == 0) then
-      print("FizzBuzz\n")
+      print("FizzBuzz\n");
     elsif i % 3 == 0 then
-      print("Fizz\n")
+      print("Fizz\n");
     elsif i % 5 == 0 then
-      print("Buzz\n")
+      print("Buzz\n");
     else
       print(i);
       print("\n");
@@ -15,4 +15,4 @@ let fizzbuzz = |a| do
 
     i = i + 1;
   end
-end
+end;

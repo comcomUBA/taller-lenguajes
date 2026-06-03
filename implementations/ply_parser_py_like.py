@@ -429,8 +429,8 @@ def p_elsif_parts_empty(p):
 
 
 def p_elsif_parts_many(p):
-    """elsif_parts : elsif_parts ELSIF expression stmt_list_opt"""
-    p[0] = p[1] + [(p[3], Block(p[4]))]
+    """elsif_parts : elsif_parts ELSIF expression THEN stmt_list_opt"""
+    p[0] = p[1] + [(p[3], Block(p[5]))]
 
 
 def p_else_part_empty(p):
