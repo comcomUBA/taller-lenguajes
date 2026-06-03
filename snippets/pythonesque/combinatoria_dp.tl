@@ -21,7 +21,7 @@ let comb = |n, k| do
   while n >= i do
     let j = min(i, k);
     while j > 0 do
-      set(temp, j, get(temp, j) + get(temp, j - 1)
+      set(temp, j, get(temp, j) + get(temp, j - 1));
       i = i - 1;
     end
     i = i + 1;
