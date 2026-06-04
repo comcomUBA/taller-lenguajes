@@ -1,0 +1,116 @@
+= Instrucciones de la máquina virtual
+
+#table(
+  columns: 4,
+  [*Nombre*], [*Parámetro*], [*Advertencia*], [*Información*],
+
+  [`JMP`],
+  [`target` (str): el label a donde saltar incondicionalmente.],
+  [N/A.],
+  [Salta incondicionalmente a una posición en el código, donde la posición es indicada por el "label" o etiqueta.],
+
+  [`DEFINE`],
+  [`name` (str): el nombre para definir una variable nueva.],
+  [Asume que hay un valor en el stack para retirar.],
+  [Define una variable nueva en el entorno local o global.],
+
+  [`LOAD`],
+  [`name` (str): el nombre de una variable para cargar su valor en el stack.],
+  [N/A.],
+  [Carga el valor de una variable en el entorno local o global en el stack.],
+
+  [`PUSH`],
+  [`value` (VMValue): carga un valor sobre el stack.],
+  [N/A.],
+  [Carga un valor inmediato en el stack. _Un *VMValue* es cualquier valor de tipo `str`, `bool`, `float` o `list[T]` (donde T es cualquiera de los primeros 3 tipos) en Python._],
+
+  [`CREATE_ARRAY`],
+  [`quantity` (int): cantidad de elementos en el array.],
+  [Asume que hay {`quantity`} cantidad de elementos en el stack para retirar.],
+  [Crea un valor de tipo lista y lo carga en el stack.],
+
+  [`CALL`],
+  [`arity` (int): cantidad de argumentos de la función.],
+  [Asume que hay {`arity`} cantidad de elementos en el stack, y además, asume que hay una función en el stack para retirar (en ese orden).],
+  [Invoca una función con argumentos, de ser de aridad mayor a 0. _La función puede o no ser una función nativa, o una función propia al script._],
+
+  [`UNOP`],
+  [Si el argumento es "not", es equivalente a la operación `not a` (donde `a` es un valor booleano) en Python.],
+  [Asume que hay un valor booleano en el stack para retirar.],
+  [Operador unario `not`.],
+
+  [`UNOP`],
+  [Si el argumento es "-", es equivalente a la operación `-a` (donde `a` es un valor numérico) en Python.],
+  [Asume que hay un valor numérico en el stack para retirar.],
+  [Operador unario `-`.],
+
+  [`JMP_IF_FALSE`],
+  [`target` (str): el label a donde saltar, dependiendo si el último valor en el stack es falso.],
+  [Asume que hay un valor booleano en el stack para retirar.],
+  [Salta condicionalmente a una posición en el código, donde la posición es indicada por el "label" o etiqueta.],
+
+  [`JMP_IF_TRUE`],
+  [`target` (str): el label a donde saltar, dependiendo si el último valor en el stack es verdadero.],
+  [Asume que hay un valor booleano en el stack para retirar.],
+  [Salta condicionalmente a una posición en el código, donde la posición es indicada por el "label" o etiqueta.],
+
+  [`DROP`],
+  [N/A.],
+  [Asume que hay un valor en el stack para retirar.],
+  [Retira el último elemento del stack, sin efecto secundario alguno.],
+
+  [`RETURN`],
+  [N/A.],
+  [Asume que hay un valor en el stack para retirar.],
+  [Retira el último elemento del stack, y lo carga sobre el stack de la función invocante a la actual.],
+
+  [`BINOP`],
+  [Si el argumento es "<=", es equivalente a la operación `a <= b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `<=`. Carga sobre el stack el resultado booleano de realizar la operación `a <= b`.],
+  
+  [`BINOP`],
+  [Si el argumento es ">=", es equivalente a la operación `a >= b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `>=`. Carga sobre el stack el resultado booleano de realizar la operación `a >= b`.],
+  
+  [`BINOP`],
+  [Si el argumento es ">", es equivalente a la operación `a > b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `>`. Carga sobre el stack el resultado booleano de realizar la operación `a > b`.],
+  
+  [`BINOP`],
+  [Si el argumento es "<", es equivalente a la operación `a < b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `<`. Carga sobre el stack el resultado booleano de realizar la operación `a < b`.],
+
+  [`BINOP`],
+  [Si el argumento es "+", es equivalente a la operación `a + b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `+`. Carga sobre el stack el resultado numérico de realizar la operación `a + b`.],
+
+  [`BINOP`],
+  [Si el argumento es "-", es equivalente a la operación `a - b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `-`. Carga sobre el stack el resultado numérico de realizar la operación `a - b`.],
+
+  [`BINOP`],
+  [Si el argumento es "==", es equivalente a la operación `a == b` (donde `a` y `b` son un valor) en Python.],
+  [Asume que hay dos valores en el stack para retirar.],
+  [Operador binario `==`. Carga sobre el stack el resultado booleano de realizar la operación `a == b`.],
+
+  [`BINOP`],
+  [Si el argumento es "%", es equivalente a la operación `a % b` (donde `a` y `b` son un valor numérico) en Python.],
+  [Asume que hay dos valores numéricos en el stack para retirar.],
+  [Operador binario `%`. Carga sobre el stack el resultado numérico de realizar la operación `a % b`.],
+
+  [`ASSIGN`],
+  [`name` (str): el nombre de una variable para asignarle un valor.],
+  [Asume que hay un valor en el stack para retirar.],
+  [Asigna un valor nuevo a una variable existente en el entorno local o global.],
+
+  [`DUP`],
+  [N/A.],
+  [Asume que hay un valor en el stack para retirar.],
+  [Retira el último elemento del stack, y lo duplica sobre el stack.],
+)
