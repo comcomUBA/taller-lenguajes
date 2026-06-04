@@ -3,16 +3,17 @@ let fizzbuzz = |a| {
 
   while i < 100 {
     if (i % 3 == 0) and (i % 5 == 0) {
-      print("FizzBuzz\n");
+      print("FizzBuzz")
     } elsif i % 3 == 0 {
-      print("Fizz\n");
+      print("Fizz")
     } elsif i % 5 == 0 {
-      print("Buzz\n");
+      print("Buzz")
     } else {
-      print(i);
-      print("\n");
-    }
+      print(i)
+    };
 
-    i = i + 1;
+    i = i + 1
   }
 };
+
+fizzbuzz(10)

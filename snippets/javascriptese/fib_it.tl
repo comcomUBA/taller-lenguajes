@@ -9,13 +9,13 @@ let fib = |cnt| {
     b = a + b;
     a = temp;
 
-    cnt = cnt - 1;
-  }
+    cnt = cnt - 1
+  };
 
-  return b;
+  b
 };
 
 print("fib(0)", fib(0));
 print("fib(1)", fib(1));
 print("fib(5)", fib(5));
-print("fib(10)", fib(10));
+print("fib(10)", fib(10))

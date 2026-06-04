@@ -4,11 +4,13 @@ let function = |a, b, c| {
     let boolean = true;
 
     if a == number {
-        print("a is pi");
-    }
+        print("a is pi")
+    };
 
     while b > 0 {
         print("b is currently: ", b);
-        b = b - 1;
+        b = b - 1
     }
 };
+
+print(function(3.14, 2, 3))

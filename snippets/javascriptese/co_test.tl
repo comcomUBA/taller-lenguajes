@@ -3,14 +3,14 @@ let call_range = |start, end, f| {
 
   while i < end {
     i = i + 1;
-    f(i);
-  }
+    f(i)
+  };
 
-  return "Done!";
+  "Done!"
 };
 let comm = |i| {
   print("comm:Yielding", i);
-  print("comm:Got", yield(i));
+  print("comm:Got", yield(i))
 };
 let generator = start(call_range, [0, 10, comm]);
 print("Starting", generator);
@@ -25,4 +25,4 @@ print("Resume", resume(generator, 107));
 print("Resume", resume(generator, 108));
 print("Resume", resume(generator, 109));
 print("Resume", resume(generator, 110));
-print("Resume", resume(generator, 111));
+print("Resume", resume(generator, 111))

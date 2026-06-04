@@ -39,14 +39,6 @@ class Return:
 
 
 @dataclass
-class ExprStmt:
-    expr: Any
-
-    def accept(self, visitor):
-        return visitor.visit_expr_stmt(self)
-
-
-@dataclass
 class If:
     condition: Any
     then_body: Block
@@ -359,68 +351,49 @@ class TLLexer:
 # -----------------------------------------------------------------------------
 
 
-start = "stmt_list_opt"
+start = "expr_list_opt"
 
 
-def p_stmt_list_opt(p):
-    """stmt_list_opt : stmt_list
+def p_expr_list_opt(p):
+    """expr_list_opt : expr_list
                      | empty"""
     p[0] = p[1] or []
 
 
-def p_stmt_list_single(p):
-    """stmt_list : statement"""
+def p_expr_list_single(p):
+    """expr_list : expression"""
     p[0] = [p[1]]
 
 
-def p_stmt_list_many(p):
-    """stmt_list : stmt_list statement"""
-    p[0] = p[1] + [p[2]]
+def p_expr_list_many(p):
+    """expr_list : expr_list SEMI expression"""
+    p[0] = p[1] + [p[3]]
 
 
-# The semicolon rule is enforced here: only block statements can omit ';'.
-
-
-def p_statement_simple(p):
-    """statement : simple_stmt SEMI"""
-    p[0] = p[1]
-
-
-def p_statement_block(p):
-    """statement : if_stmt
-                 | while_stmt"""
-    p[0] = p[1]
-
-
-def p_simple_stmt_let(p):
-    """simple_stmt : LET ID
-                   | LET ID ASSIGN expression"""
+def p_let_expr(p):
+    """expression : LET ID
+                  | LET ID ASSIGN expression"""
     p[0] = Let(p[2], p[4] if len(p) == 5 else None)
 
 
-def p_simple_stmt_return(p):
-    """simple_stmt : RETURN
-                   | RETURN expression"""
+def p_return_expr(p):
+    """expression : RETURN
+                  | RETURN expression"""
     p[0] = Return(p[2] if len(p) == 3 else None)
 
 
-def p_simple_stmt_expr(p):
-    """simple_stmt : expression"""
-    p[0] = ExprStmt(p[1])
-
-
 def p_block(p):
-    """block : LBRACE stmt_list_opt RBRACE"""
+    """expression : LBRACE expr_list_opt RBRACE"""
     p[0] = Block(p[2])
 
 
-def p_while_stmt(p):
-    """while_stmt : WHILE expression block"""
+def p_while_expr(p):
+    """expression : WHILE expression expression"""
     p[0] = While(p[2], p[3])
 
 
-def p_if_stmt(p):
-    """if_stmt : IF expression block elsif_parts else_part"""
+def p_if_expr(p):
+    """expression : IF expression expression elsif_parts else_part"""
     p[0] = If(p[2], p[3], p[4], p[5])
 
 
@@ -430,7 +403,7 @@ def p_elsif_parts_empty(p):
 
 
 def p_elsif_parts_many(p):
-    """elsif_parts : elsif_parts ELSIF expression block"""
+    """elsif_parts : elsif_parts ELSIF expression expression"""
     p[0] = p[1] + [(p[3], p[4])]
 
 
@@ -440,7 +413,7 @@ def p_else_part_empty(p):
 
 
 def p_else_part_block(p):
-    """else_part : ELSE block"""
+    """else_part : ELSE expression"""
     p[0] = p[2]
 
 
@@ -458,13 +431,8 @@ def p_assignment_plain(p):
 
 
 def p_assignment_assign(p):
-    """assignment : lvalue ASSIGN assignment"""
-    p[0] = Assign(p[1], p[3])
-
-
-def p_lvalue_var(p):
-    """lvalue : ID"""
-    p[0] = Var(p[1])
+    """assignment : ID ASSIGN assignment"""
+    p[0] = Assign(Var(p[1]), p[3])
 
 
 def p_logic_or_plain(p):
@@ -590,7 +558,7 @@ def p_array(p):
 
 
 def p_lambda_literal(p):
-    """lambda_literal : BAR params_opt BAR block"""
+    """lambda_literal : BAR params_opt BAR expression"""
     p[0] = Lambda(p[2], p[4])
 
 
@@ -768,10 +736,6 @@ class ASTPrinter:
         if _return.value is not None:
             self.visit(_return.value)
 
-    def visit_expr_stmt(self, expr_stmt):
-        self.print('ExprStmt')
-        self.visit(expr_stmt.expr)
-
 @dataclass
 class Label:
     target: int | None
@@ -802,6 +766,7 @@ class ASTCompiler:
             self.visit(let.value)
         else:
             self.do('PUSH', None)
+        self.do('DUP')
         self.do('DEFINE', let.name)
 
     def visit_lambda(self, _lambda):
@@ -809,13 +774,18 @@ class ASTCompiler:
         for param in reversed(_lambda.params):
             lambda_visitor.do('DEFINE', param)
         lambda_visitor.visit(_lambda.body)
-        lambda_visitor.do('PUSH', None)
         lambda_visitor.do('RETURN')
 
         self.do('PUSH', VMFunc(lambda_visitor.instructions))
 
     def visit_block(self, block):
-        for statement in block.statements:
+        if block.statements:
+            self.visit(block.statements[0])
+        else:
+            self.do('PUSH', None)
+
+        for statement in block.statements[1:]:
+            self.do('DROP')
             self.visit(statement)
 
     def visit_literal(self, literal):
@@ -842,20 +812,25 @@ class ASTCompiler:
         self.resolve(condition_failed)
         if _if.else_body is not None:
             self.visit(_if.else_body)
+        else:
+            self.do('PUSH', None)
         self.resolve(after_if)
 
     def visit_while(self, _while):
         after_loop = self.new_label()
+        self.do('PUSH', None)
         guard = self.new_label()
         self.resolve(guard)
         self.visit(_while.condition)
         self.do('JMP_IF_FALSE', after_loop)
+        self.do('DROP')
         self.visit(_while.body)
         self.do('JMP', guard)
         self.resolve(after_loop)
 
     def visit_assign(self, assign):
         self.visit(assign.value)
+        self.do('DUP')
         self.do('ASSIGN', assign.target.name)
 
     def visit_var(self, var):
@@ -906,10 +881,6 @@ class ASTCompiler:
         else:
             self.do('PUSH', None)
         self.do('RETURN')
-
-    def visit_expr_stmt(self, expr_stmt):
-        self.visit(expr_stmt.expr)
-        self.do('DROP')
 
 
 @dataclass
@@ -1111,7 +1082,7 @@ class VM:
             ins = self.frame.instructions[self.frame.pc]
             self.frame.pc += 1
 
-            #print(ins[0], self.frame)
+            #print(self.frame.pc, ins[0], ins[1:], self.frame.stack)
             match ins:
                 case ('JMP', Label(target=target)):
                     self.frame.pc = target
@@ -1165,6 +1136,10 @@ class VM:
                     rhs = self.frame.pop()
                     lhs = self.frame.pop()
                     self.frame.push(lhs < rhs)
+                case ('BINOP', '>='):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs >= rhs)
                 case ('BINOP', '+'):
                     rhs = self.frame.pop()
                     lhs = self.frame.pop()
@@ -1190,7 +1165,6 @@ class VM:
                     else:
                         print("UNDEFINED", var_name)
                         break
-                    self.frame.push(value)
                 case ('DUP',):
                     value = self.frame.pop()
                     self.frame.push(value)
