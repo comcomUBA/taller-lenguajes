@@ -1157,6 +1157,14 @@ class VM:
                     result = self.frame.pop()
                     self.frame = self.frame.parent
                     self.frame.push(result)
+                case ('BINOP', '>='):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs <= rhs)
+                case ('BINOP', '<='):
+                    rhs = self.frame.pop()
+                    lhs = self.frame.pop()
+                    self.frame.push(lhs <= rhs)
                 case ('BINOP', '>'):
                     rhs = self.frame.pop()
                     lhs = self.frame.pop()
