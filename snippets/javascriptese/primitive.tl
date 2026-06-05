@@ -12,3 +12,5 @@ let function = |a, b, c| {
         b = b - 1;
     }
 };
+
+function(3.14, 4, "foo");
