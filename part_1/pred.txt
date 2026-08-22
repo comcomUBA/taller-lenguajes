@@ -1,0 +1,3 @@
+pred esPar(x: Entero) {
+    x mod 2 = 0
+}

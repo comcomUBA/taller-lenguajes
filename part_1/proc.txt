@@ -1,0 +1,9 @@
+TAD Vector {
+    obs x;
+    obs y;
+
+    proc length(v : Vector): Real {
+        requiere { True }
+        asegura  { res = raizCuadrada(v.x * v.x + v.y * v.y) }
+    }
+}
