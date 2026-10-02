@@ -24,31 +24,38 @@ class LineBuffer:
             p = self.line[0]; self.line = self.line[1:]
             return p
 
-    def peek(self) -> str | None:
+    def peek(self, index: int) -> str | None:
         """
-        Devuelve, sin eliminar, el próximo carácter en la línea. Devuelve None si no hay.
+        Devuelve, sin eliminar, el carácter en el índice dado. Devuelve None si no hay.
         """
 
-        if len(self.line) > 0:
-            return self.line[0]
+        if index >= 0 and index < len(self.line):
+            return self.line[index]
 
 class TokenKind(Enum):
     IDENTIFIER    = auto() # foo
     NUMBER        = auto() # 1
     BRACKET_BEGIN = auto() # {
     BRACKET_CLOSE = auto() # }
-    CURLY_BEGIN   = auto() # (
-    CURLY_CLOSE   = auto() # )
+    ROUND_BEGIN   = auto() # (
+    ROUND_CLOSE   = auto() # )
     COLON_SEMI    = auto() # ;
     COLON         = auto() # :
     COMMA         = auto() # ,
     DOT           = auto() # .
+    PIPE          = auto() # |
     EQUAL         = auto() # =
+    EQUAL_NOT     = auto() # !=
+    GT            = auto() # >
+    GTE           = auto() # >=
+    LT            = auto() # <
+    LTE           = auto() # <=
     ADD           = auto() # +
     SUBTRACT      = auto() # -
     MULTIPLY      = auto() # *
     DIVIDE        = auto() # /
     MODULO        = auto() # mod
+    OBSERVER      = auto() # obs
     PROCEDURE     = auto() # proc
     PREDICATE     = auto() # pred
     AUXILIARY     = auto() # aux
@@ -62,46 +69,66 @@ class TokenKind(Enum):
     OR            = auto() # or
     NOT           = auto() # not
     IMPLICATION   = auto() # then
+    REQUIRE       = auto() # requiere
+    ASSURE        = auto() # asegura
 
-    def __str__(self):
+    def __repr__(self):
         look_up = {
             TokenKind.IDENTIFIER    : "Identifier",
             TokenKind.NUMBER        : "Number",
-            TokenKind.BRACKET_BEGIN : "{",
-            TokenKind.BRACKET_CLOSE : "}",
-            TokenKind.CURLY_BEGIN   : "(",
-            TokenKind.CURLY_CLOSE   : ")",
-            TokenKind.COLON_SEMI    : ";",
-            TokenKind.COLON         : ":",
-            TokenKind.COMMA         : ",",
-            TokenKind.DOT           : ".",
-            TokenKind.EQUAL         : "=",
-            TokenKind.ADD           : "+",
-            TokenKind.SUBTRACT      : "-",
-            TokenKind.MULTIPLY      : "*",
-            TokenKind.DIVIDE        : "/",
-            TokenKind.MODULO        : "mod",
-            TokenKind.PROCEDURE     : "proc",
-            TokenKind.PREDICATE     : "pred",
-            TokenKind.AUXILIARY     : "aux",
-            TokenKind.ADT           : "TAD",
-            TokenKind.RESULT        : "res",
-            TokenKind.TRUE          : "Verdadero",
-            TokenKind.FALSE         : "Falso",
-            TokenKind.IN            : "in",
-            TokenKind.IN_OUT        : "inOut",
-            TokenKind.AND           : "and",
-            TokenKind.OR            : "or",
-            TokenKind.NOT           : "not",
-            TokenKind.IMPLICATION   : "then",
+            TokenKind.BRACKET_BEGIN : "'{'",
+            TokenKind.BRACKET_CLOSE : "'}'",
+            TokenKind.ROUND_BEGIN   : "'('",
+            TokenKind.ROUND_CLOSE   : "')'",
+            TokenKind.COLON_SEMI    : "';'",
+            TokenKind.COLON         : "':'",
+            TokenKind.COMMA         : "','",
+            TokenKind.DOT           : "'.'",
+            TokenKind.PIPE          : "'|'",
+            TokenKind.EQUAL         : "'='",
+            TokenKind.EQUAL_NOT     : "'!='",
+            TokenKind.GT            : "'>'",
+            TokenKind.GTE           : "'>='",
+            TokenKind.LT            : "'<'",
+            TokenKind.LTE           : "'<='",
+            TokenKind.ADD           : "'+'",
+            TokenKind.SUBTRACT      : "'-'",
+            TokenKind.MULTIPLY      : "'*'",
+            TokenKind.DIVIDE        : "'/'",
+            TokenKind.MODULO        : "'mod'",
+            TokenKind.OBSERVER      : "'obs'",
+            TokenKind.PROCEDURE     : "'proc'",
+            TokenKind.PREDICATE     : "'pred'",
+            TokenKind.AUXILIARY     : "'aux'",
+            TokenKind.ADT           : "'TAD'",
+            TokenKind.RESULT        : "'res'",
+            TokenKind.TRUE          : "'Verdadero'",
+            TokenKind.FALSE         : "'Falso'",
+            TokenKind.IN            : "'in'",
+            TokenKind.IN_OUT        : "'inOut'",
+            TokenKind.AND           : "'and'",
+            TokenKind.OR            : "'or'",
+            TokenKind.NOT           : "'not'",
+            TokenKind.IMPLICATION   : "'then'",
+            TokenKind.REQUIRE       : "'require'",
+            TokenKind.ASSURE        : "'assure'",
         }
 
-        return f"'{look_up[self]}'"
+        return look_up[self]
 
 @dataclass
 class Token:
     kind : TokenKind
     data : any
+
+    def __repr__(self):
+        if self.data == None:
+            return f"{self.kind}"
+        else:
+            if isinstance(self.data, str):
+                return f"{self.kind}('{self.data}')"
+            else:
+                return f"{self.kind}({self.data})"
 
 @dataclass
 class TokenBuffer:
@@ -132,12 +159,12 @@ class TokenBuffer:
         Devuelve, eliminando, el próximo token en la lista, sí es el tipo de token deseado (kind).
         """
 
-        t = self.token.pop()
+        t = self.pop()
 
         if t.kind == kind:
             return t
         else:
-            raise ValueError(f"Esperaba un token de tipo: '{kind}' pero recibí: '{t.kind}'")
+            raise ValueError(f"Esperaba un token de tipo: {kind} pero recibí: {t.kind}")
 
     def want_peek(self, kind: TokenKind) -> Token | None:
         """
@@ -161,20 +188,18 @@ class TokenBuffer:
         else:
             return None
 
-    def print(self):
+    def __repr__(self):
         """
         Imprime por pantalla la lista actual de tokens.
         """
 
-        print("[")
+        buffer = ""
+
+        buffer = buffer + '[' + '\n'
 
         for t in self.token:
-            if t.data == None:
-                print(f"  Token({t.kind}),")
-            else:
-                if isinstance(t.data, str):
-                    print(f"  Token({t.kind}, '{t.data}'),")
-                else:
-                    print(f"  Token({t.kind}, {t.data}),")
+            buffer = buffer + f"  Token({t}),\n"
 
-        print("]")
+        buffer = buffer + ']'
+
+        return buffer

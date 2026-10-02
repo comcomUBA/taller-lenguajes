@@ -6,25 +6,22 @@ from pprint import pprint
 
 #================================================================
 
-def parser(t_b: TokenBuffer) -> [any]:
-    construct_list = []
+@dataclass
+class Observer:
+    name      : Token
+    type      : Token
 
-    for t in t_b.token:
-        match t.kind:
-            case TokenKind.PROCEDURE:
-                value = Procedure(t_b)
-                pprint(value, width=40)
-            case TokenKind.PREDICATE:
-                value = Predicate(t_b)
-                pprint(value, width=40)
-            case TokenKind.AUXILIARY:
-                value = Auxiliary(t_b)
-                pprint(value, width=40)
-            case TokenKind.ADT:
-                value = ADT(t_b)
-                pprint(value, width=40)
+    def __init__(self, t_b: TokenBuffer):
+        # ... código a completar ...!
 
-    return construct_list
+        t_b.want(TokenKind.OBSERVER)
+
+        self.name = t_b.want(TokenKind.IDENTIFIER)
+        t_b.want(TokenKind.COLON)
+        self.type = t_b.want(TokenKind.IDENTIFIER)
+
+    def __repr__(self):
+        return f"Observer({self.name} : {self.type})"
 
 @dataclass
 class Parameter:
@@ -40,7 +37,7 @@ class Parameter:
             reference_in_out = t_b.want_peek(TokenKind.IN_OUT)
 
             if reference_in == None and reference_in_out == None:
-                raise ValueError("expected in/inOut, got: " + str(t_b.peek()))
+                raise ValueError(f"Esperaba in/inOut, pero recibí: {t_b.peek()}")
 
             if reference_in != None:
                 t_b.want(TokenKind.IN)
@@ -56,6 +53,11 @@ class Parameter:
         t_b.want(TokenKind.COLON)
         self.type = t_b.want(TokenKind.IDENTIFIER)
 
+    def __repr__(self):
+        reference = "inOut" if self.reference else "in"
+
+        return f"Parameter({reference} {self.name} : {self.type})"
+
 @dataclass
 class Procedure:
     name           : Token
@@ -66,7 +68,58 @@ class Procedure:
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
-        ...
+
+        self.return_type    = None
+        self.parameter_list = []
+        self.expression_r   = []
+        self.expression_a   = []
+
+        t_b.want(TokenKind.PROCEDURE)
+
+        self.name = t_b.want(TokenKind.IDENTIFIER)
+
+        t_b.want(TokenKind.ROUND_BEGIN)
+
+        while t_b.want_peek(TokenKind.ROUND_CLOSE) == None:
+            self.parameter_list.append(Parameter(t_b, True))
+
+            if t_b.want_peek(TokenKind.COMMA) != None:
+                t_b.want(TokenKind.COMMA)
+
+        t_b.want(TokenKind.ROUND_CLOSE)
+
+        if t_b.want_peek(TokenKind.COLON):
+            t_b.want(TokenKind.COLON)
+
+            self.return_type = t_b.want(TokenKind.IDENTIFIER)
+
+        t_b.want(TokenKind.BRACKET_BEGIN)
+
+        #==== requiere ================
+
+        t_b.want(TokenKind.REQUIRE)
+
+        t_b.want(TokenKind.BRACKET_BEGIN)
+
+        while t_b.want_peek(TokenKind.BRACKET_CLOSE) == None:
+            self.expression_r.append(t_b.pop())
+
+        t_b.want(TokenKind.BRACKET_CLOSE)
+
+        #==== asegura =================
+
+        t_b.want(TokenKind.ASSURE)
+
+        t_b.want(TokenKind.BRACKET_BEGIN)
+
+        while t_b.want_peek(TokenKind.BRACKET_CLOSE) == None:
+            self.expression_a.append(t_b.pop())
+
+        t_b.want(TokenKind.BRACKET_CLOSE)
+
+        #==============================
+
+        t_b.want(TokenKind.BRACKET_CLOSE)
 
 @dataclass
 class Predicate:
@@ -76,7 +129,30 @@ class Predicate:
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
-        ...
+
+        self.parameter_list = []
+        self.expression     = []
+
+        t_b.want(TokenKind.PREDICATE)
+
+        self.name = t_b.want(TokenKind.IDENTIFIER)
+
+        t_b.want(TokenKind.ROUND_BEGIN)
+
+        while t_b.want_peek(TokenKind.ROUND_CLOSE) == None:
+            self.parameter_list.append(Parameter(t_b, False))
+
+            if t_b.want_peek(TokenKind.COMMA) != None:
+                t_b.want(TokenKind.COMMA)
+
+        t_b.want(TokenKind.ROUND_CLOSE)
+
+        t_b.want(TokenKind.BRACKET_BEGIN)
+
+        while t_b.want_peek(TokenKind.BRACKET_CLOSE) == None:
+            self.expression.append(t_b.pop())
+
+        t_b.want(TokenKind.BRACKET_CLOSE)
 
 @dataclass
 class Auxiliary:
@@ -93,17 +169,17 @@ class Auxiliary:
 
         t_b.want(TokenKind.AUXILIARY)
 
-        identifier = t_b.want(TokenKind.IDENTIFIER)
+        self.name = t_b.want(TokenKind.IDENTIFIER)
 
-        t_b.want(TokenKind.CURLY_BEGIN)
+        t_b.want(TokenKind.ROUND_BEGIN)
 
-        while t_b.want_peek(TokenKind.CURLY_CLOSE) == None:
-            self.parameter_list.append(Parameter(False))
+        while t_b.want_peek(TokenKind.ROUND_CLOSE) == None:
+            self.parameter_list.append(Parameter(t_b, False))
 
             if t_b.want_peek(TokenKind.COMMA) != None:
                 t_b.want(TokenKind.COMMA)
 
-        t_b.want(TokenKind.CURLY_CLOSE)
+        t_b.want(TokenKind.ROUND_CLOSE)
 
         t_b.want(TokenKind.COLON)
 
@@ -112,18 +188,58 @@ class Auxiliary:
         t_b.want(TokenKind.BRACKET_BEGIN)
 
         while t_b.want_peek(TokenKind.BRACKET_CLOSE) == None:
-            self.expression.append(pop(list_token))
+            self.expression.append(t_b.pop())
 
         t_b.want(TokenKind.BRACKET_CLOSE)
 
 @dataclass
 class ADT:
     name           : Token
-    observer_list  : [Parameter]
+    observer_list  : [Observer]
     procedure_list : [Procedure]
     predicate_list : [Predicate]
     auxiliary_list : [Auxiliary]
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
-        ...
+
+        self.observer_list = []
+        self.procedure_list = []
+        self.predicate_list = []
+        self.auxiliary_list = []
+
+        t_b.want(TokenKind.ADT)
+
+        self.name = t_b.want(TokenKind.IDENTIFIER)
+
+        t_b.want(TokenKind.BRACKET_BEGIN)
+
+        while t_b.want_peek(TokenKind.BRACKET_CLOSE) == None:
+            match t_b.peek().kind:
+                case TokenKind.OBSERVER:
+                    self.observer_list.append(Observer(t_b))
+                case TokenKind.PROCEDURE:
+                    self.procedure_list.append(Procedure(t_b))
+                case TokenKind.PREDICATE:
+                    self.predicate_list.append(Predicate(t_b))
+                case TokenKind.AUXILIARY:
+                    self.auxiliary_list.append(Auxiliary(t_b))
+
+        t_b.want(TokenKind.BRACKET_CLOSE)
+
+def parser(t_b: TokenBuffer) -> Procedure | Predicate | Auxiliary | ADT:
+    value = None
+
+    match t_b.peek().kind:
+        case TokenKind.PROCEDURE:
+            value = Procedure(t_b)
+        case TokenKind.PREDICATE:
+            value = Predicate(t_b)
+        case TokenKind.AUXILIARY:
+            value = Auxiliary(t_b)
+        case TokenKind.ADT:
+            value = ADT(t_b)
+
+    pprint(value, width=40)
+
+    return value

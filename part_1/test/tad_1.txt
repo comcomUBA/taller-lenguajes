@@ -2,7 +2,7 @@ TAD Vector {
     obs x: Real
     obs y: Real
 
-    proc vector(in x: Real, in y: Real): Vector {
+    proc nuevoVector(inOut x: Real, in y: Real): Vector {
         requiere { Verdadero }
         asegura  {
                 res.x = x
@@ -10,16 +10,11 @@ TAD Vector {
         }
     }
 
-    proc longitud(in v: Vector): Real {
-        requiere { Verdadero }
-        asegura  { res = raizCuadrada(v.x * v.x + v.y * v.y) }
+    aux distancia(a: Vector, b: Vector): Real {
+        |(a.x - b.x) - (a.y - b.y)|
     }
 
-    proc mover(inOut v: Vector, in pX: Real, in pY: Real) {
-        requiere { V = v }
-        asegura  {
-                v.x = V.x + pX
-            and v.y = V.y + pY
-        }
+    pred esNulo(a: Vector) {
+        a.x = 0 and a.y = 0
     }
 }
