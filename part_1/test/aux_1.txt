@@ -1,0 +1,3 @@
+aux esPar(x: Entero, y: Entero): Booleano {
+    x mod 2.0 = 0
+}

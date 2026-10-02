@@ -1,97 +1,53 @@
+from common import *
+from parser import *
+
+#================================================================
+
 from dataclasses import dataclass
-from enum import Enum
+import sys
+import unittest
 
-@dataclass
-class LineBuffer:
-    line  : str
-    index : int
+#================================================================
 
-    def __init__(self, line: str):
-        self.line  = line
-        self.index = 0
+def lex_string(text: str) -> Token:
+    # ... código a completar ...!
 
-    def next(self) -> str | None:
-        if self.index < len(self.line):
-            self.index += 1;
-            return self.line[self.index - 1]
+    look_up = {
+        '{'         : Token(TokenKind.BRACKET_BEGIN, None),
+        '}'         : Token(TokenKind.BRACKET_CLOSE, None),
+        '('         : Token(TokenKind.CURLY_BEGIN,   None),
+        ')'         : Token(TokenKind.CURLY_CLOSE,   None),
+        ';'         : Token(TokenKind.COLON_SEMI,    None),
+        ':'         : Token(TokenKind.COLON,         None),
+        ","         : Token(TokenKind.COMMA,         None),
+        '.'         : Token(TokenKind.DOT,           None),
+        '='         : Token(TokenKind.EQUAL,         None),
+        '+'         : Token(TokenKind.ADD,           None),
+        '-'         : Token(TokenKind.SUBTRACT,      None),
+        '*'         : Token(TokenKind.MULTIPLY,      None),
+        '/'         : Token(TokenKind.DIVIDE,        None),
+        "mod"       : Token(TokenKind.MODULO,        None),
+        "proc"      : Token(TokenKind.PROCEDURE,     None),
+        "pred"      : Token(TokenKind.PREDICATE,     None),
+        "aux"       : Token(TokenKind.AUXILIARY,     None),
+        "TAD"       : Token(TokenKind.ADT,           None),
+        "res"       : Token(TokenKind.RESULT,        None),
+        "Verdadero" : Token(TokenKind.TRUE,          None),
+        "Falso"     : Token(TokenKind.FALSE,         None),
+        "in"        : Token(TokenKind.IN,            None),
+        "inOut"     : Token(TokenKind.IN_OUT,        None),
+    }
 
-    def peek(self) -> str | None:
-        if self.index < len(self.line):
-            return self.line[self.index]
+    if text in look_up:
+        return look_up[text]
+    else:
+        return Token(TokenKind.IDENTIFIER, text)
 
-class TokenKind(Enum):
-    IDENTIFIER    = 0
-    NUMBER        = 1
-    BRACKET_BEGIN = 2
-    BRACKET_CLOSE = 3
-    CURLY_BEGIN   = 4
-    CURLY_CLOSE   = 5
-    COLON_SEMI    = 6
-    COLON         = 7
-    EQUAL         = 8
-    DOT           = 9
-    ADD           = 10
-    SUBTRACT      = 11
-    MULTIPLY      = 12
-    DIVIDE        = 13
-    MODULO        = 14
-    PROCEDURE     = 15
-    PREDICATE     = 16
-    AUXILIARY     = 17
-    RESULT        = 18
-    TRUE          = 19
-    FALSE         = 20
+def lexer(text: str) -> TokenBuffer:
+    t_b         = TokenBuffer()
 
-@dataclass
-class Token:
-    kind : TokenKind
-    data : any
+    # ... código a completar ...!
 
-def lex_character(text: str, list_token: list[Token]):
-    match text:
-        case '{':
-            list_token.append(Token(TokenKind.BRACKET_BEGIN, None))
-        case '}':
-            list_token.append(Token(TokenKind.BRACKET_CLOSE, None))
-        case '(':
-            list_token.append(Token(TokenKind.CURLY_BEGIN, None))
-        case ')':
-            list_token.append(Token(TokenKind.CURLY_CLOSE, None))
-        case ';':
-            list_token.append(Token(TokenKind.COLON_SEMI, None))
-        case ':':
-            list_token.append(Token(TokenKind.COLON, None))
-        case '=':
-            list_token.append(Token(TokenKind.EQUAL, None))
-        case '.':
-            list_token.append(Token(TokenKind.DOT, None))
-        case '+':
-            list_token.append(Token(TokenKind.ADD, None))
-        case '-':
-            list_token.append(Token(TokenKind.SUBTRACT, None))
-        case '*':
-            list_token.append(Token(TokenKind.MULTIPLY, None))
-        case '/':
-            list_token.append(Token(TokenKind.DIVIDE, None))
-        case "mod":
-            list_token.append(Token(TokenKind.MODULO, None))
-        case "proc":
-            list_token.append(Token(TokenKind.PROCEDURE, None))
-        case "pred":
-            list_token.append(Token(TokenKind.PREDICATE, None))
-        case "aux":
-            list_token.append(Token(TokenKind.AUXILIARY, None))
-        case "res":
-            list_token.append(Token(TokenKind.RESULT, None))
-        case "True":
-            list_token.append(Token(TokenKind.TRUE, None))
-        case "False":
-            list_token.append(Token(TokenKind.FALSE, None))
-        case x:
-            list_token.append(Token(TokenKind.IDENTIFIER, x))
-
-def lexer(text: str):
-    list_token  = []
     list_string = ""
 
     for line in text:
@@ -101,15 +57,15 @@ def lexer(text: str):
 
         while character:
             match character:
-                case '{' | '}' | '(' | ')' | ';' | ':' | '.' | '=' | '+' | '-' | '*' | '/':
+                case '{' | '}' | '(' | ')' | ';' | ':' | ',' | '.' | '=' | '+' | '-' | '*' | '/':
                     if len(list_string) > 0:
-                        lex_character(list_string, list_token)
+                        t_b.push(lex_string(list_string))
                         list_string = ""
 
-                    lex_character(character, list_token)
+                    t_b.push(lex_string(character))
                 case ' ':
                     if len(list_string) > 0:
-                        lex_character(list_string, list_token)
+                        t_b.push(lex_string(list_string))
                         list_string = ""
                 case x:
                     list_string += x
@@ -117,11 +73,55 @@ def lexer(text: str):
             character = line.next()
 
         if len(list_string) > 0:
-            lex_character(list_string, list_token)
+            t_b.push(lex_string(list_string))
             list_string = ""
 
-    for t in list_token:
-        print(t)
+    return t_b
 
-with open("aux.txt") as file:
-    lexer(file.readlines())
+#================================================================
+
+class TestLexer(unittest.TestCase):
+    def test_aux_es_par(self):
+        t_b_1 = lexer(test_file("test/aux_1.txt"))
+        t_b_2 = [
+          Token(TokenKind.AUXILIARY, None),
+          Token(TokenKind.IDENTIFIER, 'esPar'),
+          Token(TokenKind.CURLY_BEGIN, None),
+          Token(TokenKind.IDENTIFIER, 'x'),
+          Token(TokenKind.COLON, None),
+          Token(TokenKind.IDENTIFIER, 'Entero'),
+          Token(TokenKind.COMMA, None),
+          Token(TokenKind.IDENTIFIER, 'y'),
+          Token(TokenKind.COLON, None),
+          Token(TokenKind.IDENTIFIER, 'Entero'),
+          Token(TokenKind.CURLY_CLOSE, None),
+          Token(TokenKind.COLON, None),
+          Token(TokenKind.IDENTIFIER, 'Booleano'),
+          Token(TokenKind.BRACKET_BEGIN, None),
+          Token(TokenKind.IDENTIFIER, 'x'),
+          Token(TokenKind.MODULO, None),
+          Token(TokenKind.IDENTIFIER, '2'),
+          Token(TokenKind.DOT, None),
+          Token(TokenKind.IDENTIFIER, '0'),
+          Token(TokenKind.EQUAL, None),
+          Token(TokenKind.IDENTIFIER, '0'),
+          Token(TokenKind.BRACKET_CLOSE, None),
+        ]
+
+        self.assertEqual(t_b_1.token, t_b_2)
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        t_b = lexer(test_file("test/" + sys.argv[1]))
+        t_b.print()
+    else:
+        print(r""" ____________
+< Testing... >
+ ------------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+----------------------------------------------------------------------""")
+        unittest.main()

@@ -1,0 +1,4 @@
+proc esUnoDistinto(x: Entero): Entero {
+    requiere { Verdadero }
+    asegura  { res != x  }
+}

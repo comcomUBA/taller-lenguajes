@@ -1,0 +1,25 @@
+TAD Vector {
+    obs x: Real
+    obs y: Real
+
+    proc vector(in x: Real, in y: Real): Vector {
+        requiere { Verdadero }
+        asegura  {
+                res.x = x
+            and res.y = y
+        }
+    }
+
+    proc longitud(in v: Vector): Real {
+        requiere { Verdadero }
+        asegura  { res = raizCuadrada(v.x * v.x + v.y * v.y) }
+    }
+
+    proc mover(inOut v: Vector, in pX: Real, in pY: Real) {
+        requiere { V = v }
+        asegura  {
+                v.x = V.x + pX
+            and v.y = V.y + pY
+        }
+    }
+}
