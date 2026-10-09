@@ -1,0 +1,5 @@
+pred mayorPrimoQueDivide(x: Entero, y: Entero) {
+        esPrimo(y)
+    and divideA(x, y)
+    and not (existe p: Entero) (esPrimo(p) and divideA(x, p) and p > y)
+}

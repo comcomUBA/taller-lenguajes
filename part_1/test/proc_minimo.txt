@@ -1,0 +1,4 @@
+proc minimo(in s: SeqEntero): Entero {
+    requiere { |s| > 0 }
+    asegura  { res in s and not (existe i: Entero) (i in s and i != res and i < res) }
+}

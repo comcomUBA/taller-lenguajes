@@ -1,0 +1,3 @@
+aux interpolacion(t: Real, a: Real, b: Real) {
+    a + t * (b - a)
+}

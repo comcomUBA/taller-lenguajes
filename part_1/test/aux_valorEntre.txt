@@ -1,0 +1,11 @@
+aux valorEntre(v: Entero, min: Entero, max: Entero) {
+    IfThenElse(
+        v >= max,
+        max,
+        IfThenElse(
+            v <= min,
+            min,
+            v
+        )
+    )
+}

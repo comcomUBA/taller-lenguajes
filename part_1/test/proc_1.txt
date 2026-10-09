@@ -1,7 +1,0 @@
-proc nuevoVector(inOut x: Real, in y: Real): Vector {
-    requiere { Verdadero }
-    asegura  {
-            res.x = x
-        and res.y = y
-    }
-}

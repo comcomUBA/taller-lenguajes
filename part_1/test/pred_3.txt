@@ -1,3 +1,0 @@
-pred esPositivo(a: Entero) {
-    a > 0
-}

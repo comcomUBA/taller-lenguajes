@@ -1,0 +1,3 @@
+pred sonCoprimos(x: Entero, y: Entero) {
+    MCD(x, y) = 1
+}

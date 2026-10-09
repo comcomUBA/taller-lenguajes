@@ -227,7 +227,7 @@ class ADT:
 
         t_b.want(TokenKind.BRACKET_CLOSE)
 
-def parser(t_b: TokenBuffer) -> Procedure | Predicate | Auxiliary | ADT | None:
+def parser(t_b: TokenBuffer) -> Procedure | Predicate | Auxiliary | ADT:
     value = None
 
     match t_b.peek().kind:

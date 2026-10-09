@@ -1,0 +1,4 @@
+proc esMultiploDe(in x: Real, in y: Real): bool {
+    requiere { y > 0 }
+    asegura  { res = Verdadero sii (x mod 2 = 0) }
+}

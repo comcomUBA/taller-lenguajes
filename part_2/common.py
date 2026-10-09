@@ -33,49 +33,44 @@ class LineBuffer:
             return self.line[index]
 
 class TokenKind(Enum):
-    IDENTIFIER         = auto() # foo
-    NUMBER             = auto() # 1
-    BRACKET_BEGIN      = auto() # {
-    BRACKET_CLOSE      = auto() # }
-    ROUND_BEGIN        = auto() # (
-    ROUND_CLOSE        = auto() # )
-    BLOCK_BEGIN        = auto() # [
-    BLOCK_CLOSE        = auto() # ]
-    COLON_SEMI         = auto() # ;
-    COLON              = auto() # :
-    COMMA              = auto() # ,
-    DOT                = auto() # .
-    PIPE               = auto() # |
-    EQUAL              = auto() # =
-    EQUAL_NOT          = auto() # !=
-    GT                 = auto() # >
-    GTE                = auto() # >=
-    LT                 = auto() # <
-    LTE                = auto() # <=
-    ADD                = auto() # +
-    SUBTRACT           = auto() # -
-    MULTIPLY           = auto() # *
-    DIVIDE             = auto() # /
-    MODULO             = auto() # mod
-    OBSERVER           = auto() # obs
-    PROCEDURE          = auto() # proc
-    PREDICATE          = auto() # pred
-    AUXILIARY          = auto() # aux
-    ADT                = auto() # TAD
-    RESULT             = auto() # res
-    TRUE               = auto() # Verdadero
-    FALSE              = auto() # Falso
-    IN                 = auto() # in
-    IN_OUT             = auto() # inOut
-    AND                = auto() # and
-    OR                 = auto() # or
-    NOT                = auto() # not
-    IMPLICATION        = auto() # entonces
-    IMPLICATION_DOUBLE = auto() # sii
-    REQUIRE            = auto() # requiere
-    ASSURE             = auto() # asegura
-    FOR_ONE            = auto() # existe
-    FOR_ALL            = auto() # paraTodo
+    IDENTIFIER    = auto() # foo
+    NUMBER        = auto() # 1
+    BRACKET_BEGIN = auto() # {
+    BRACKET_CLOSE = auto() # }
+    ROUND_BEGIN   = auto() # (
+    ROUND_CLOSE   = auto() # )
+    COLON_SEMI    = auto() # ;
+    COLON         = auto() # :
+    COMMA         = auto() # ,
+    DOT           = auto() # .
+    PIPE          = auto() # |
+    EQUAL         = auto() # =
+    EQUAL_NOT     = auto() # !=
+    GT            = auto() # >
+    GTE           = auto() # >=
+    LT            = auto() # <
+    LTE           = auto() # <=
+    ADD           = auto() # +
+    SUBTRACT      = auto() # -
+    MULTIPLY      = auto() # *
+    DIVIDE        = auto() # /
+    MODULO        = auto() # mod
+    OBSERVER      = auto() # obs
+    PROCEDURE     = auto() # proc
+    PREDICATE     = auto() # pred
+    AUXILIARY     = auto() # aux
+    ADT           = auto() # TAD
+    RESULT        = auto() # res
+    TRUE          = auto() # Verdadero
+    FALSE         = auto() # Falso
+    IN            = auto() # in
+    IN_OUT        = auto() # inOut
+    AND           = auto() # and
+    OR            = auto() # or
+    NOT           = auto() # not
+    IMPLICATION   = auto() # then
+    REQUIRE       = auto() # requiere
+    ASSURE        = auto() # asegura
 
     def __repr__(self):
         look_up = {
@@ -192,20 +187,6 @@ class TokenBuffer:
             return self.token[0]
         else:
             return None
-
-    def print(self):
-        print("[")
-
-        for t in self.token:
-            k = t.kind
-            d = t.data
-
-            if type(d) == str:
-                print(f"  Token({k}, \"{d}\"),")
-            else:
-                print(f"  Token({k}, {d}),")
-
-        print("]")
 
     def __repr__(self):
         """

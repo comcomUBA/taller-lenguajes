@@ -1,0 +1,4 @@
+proc todosPares(in s: SeqEntero): bool {
+    requiere { Verdadero }
+    asegura  { res = Verdadero sii (paraTodo i: Entero) (0 <= i < |s| entonces esPar(s[i])) }
+}

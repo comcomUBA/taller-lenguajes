@@ -1,0 +1,3 @@
+pred divide(x: Entero, y: Entero) {
+    y mod x = 0
+}

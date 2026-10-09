@@ -1,3 +1,0 @@
-pred anioBisiesto(anio: Entero) {
-    (anio mod 4 = 0 and anio mod 100 != 0) or (anio mod 400 = 0)
-}
