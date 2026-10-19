@@ -12,9 +12,6 @@ def test_file(name: str) -> str:
 class LineBuffer:
     line  : str
 
-    def __init__(self, line: str):
-        self.line = line
-
     def next(self) -> str | None:
         """
         Devuelve, eliminando, el próximo carácter en la línea. Devuelve None si no hay.
@@ -126,6 +123,14 @@ class Token:
     kind : TokenKind
     data : any
 
+    # Función de uso interno.
+    def __buildstr__(self):
+        if type(self.data) == str:
+            return f"Token({self.kind}, \"{self.data}\")"
+        else:
+            return f"Token({self.kind}, {self.data})"
+
+    # Función de uso interno.
     def __repr__(self):
         if self.data == None:
             return f"{self.kind}"
@@ -193,20 +198,16 @@ class TokenBuffer:
         else:
             return None
 
-    def print(self):
+    # Función de uso interno.
+    def __print__(self):
         print("[")
 
         for t in self.token:
-            k = t.kind
-            d = t.data
-
-            if type(d) == str:
-                print(f"  Token({k}, \"{d}\"),")
-            else:
-                print(f"  Token({k}, {d}),")
+            print(f"{t.__buildstr__()}, ")
 
         print("]")
 
+    # Función de uso interno.
     def __repr__(self):
         """
         Imprime por pantalla la lista actual de tokens.

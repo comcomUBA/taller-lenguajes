@@ -1,4 +1,4 @@
-aux valorEntre(v: Entero, min: Entero, max: Entero) {
+aux valorEntre(v: Entero, min: Entero, max: Entero): Entero {
     IfThenElse(
         v >= max,
         max,
