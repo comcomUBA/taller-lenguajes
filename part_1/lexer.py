@@ -41,6 +41,7 @@ def lex_string(text: str) -> Token:
         ","         : Token(TokenKind.COMMA,              None),
         '.'         : Token(TokenKind.DOT,                None),
         '|'         : Token(TokenKind.PIPE,               None),
+        '!'         : Token(TokenKind.EXCLAMATION,        None),
         '='         : Token(TokenKind.EQUAL,              None),
         '!='        : Token(TokenKind.EQUAL_NOT,          None),
         '>'         : Token(TokenKind.GT,                 None),
@@ -133,6 +134,5 @@ def lexer(text: str) -> TokenBuffer:
     t_b         = TokenBuffer()
 
     # ... código a completar ...!
-    ...
 
     return t_b

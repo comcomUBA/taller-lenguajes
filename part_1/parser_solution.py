@@ -458,10 +458,6 @@ class Expression:
         # Caso: 1, 123, 67
         if Expression.is_atom(ex_l):
             ex_l = Expression(ExpressionKind.ATOM, ex_l.data)
-        # Caso: (
-        elif ex_l.kind == TokenKind.ROUND_BEGIN:
-            ex_l = Expression.parse_recurse(token, 0)
-            token.want(TokenKind.ROUND_CLOSE)
         # Caso: -
         elif Expression.is_operator(ex_l):
             bp_r = Expression.prefix_bind_power(ex_l)
@@ -483,7 +479,7 @@ class Expression:
 
             #================================
 
-            # Caso: [
+            # Caso: !
             pf_bp = Expression.postfix_bind_power(operator)
 
             if pf_bp != None:
@@ -491,12 +487,7 @@ class Expression:
                     break
 
                 token.pop()
-
-                if operator.kind == TokenKind.BLOCK_BEGIN:
-                    ex_r = Expression.parse_recurse(token, 0)
-                    token.want(TokenKind.BLOCK_CLOSE)
-                    ex_l = Expression(ExpressionKind.POSTFIX, (operator, ex_l, ex_r))
-
+                ex_l = Expression(ExpressionKind.POSTFIX, (operator, ex_l))
                 continue
 
             #================================
@@ -542,11 +533,7 @@ class Expression:
             TokenKind.SUBTRACT,
             TokenKind.MULTIPLY,
             TokenKind.DIVIDE,
-            TokenKind.DOT,
-            TokenKind.ROUND_BEGIN,
-            TokenKind.ROUND_CLOSE,
-            TokenKind.BLOCK_BEGIN,
-            TokenKind.BLOCK_CLOSE
+            TokenKind.EXCLAMATION
         ]
 
         if token.kind in look_up:
@@ -562,7 +549,7 @@ class Expression:
 
         match token.kind:
             case TokenKind.SUBTRACT:
-                return 7
+                return 5
             case x:
                 return ValueError(f"{token} no es un operador válido.")
 
@@ -573,8 +560,8 @@ class Expression:
         """
 
         match token.kind:
-            case TokenKind.BLOCK_BEGIN:
-                return 8
+            case TokenKind.EXCLAMATION:
+                return 6
             case x:
                 return None
 
@@ -589,8 +576,6 @@ class Expression:
                 return (1, 2)
             case TokenKind.MULTIPLY | TokenKind.DIVIDE:
                 return (3, 4)
-            case TokenKind.DOT:
-                return (6, 5)
             case x:
                 return None
 

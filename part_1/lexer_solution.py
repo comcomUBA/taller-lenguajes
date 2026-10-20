@@ -41,6 +41,7 @@ def lex_string(text: str) -> Token:
         ","         : Token(TokenKind.COMMA,              None),
         '.'         : Token(TokenKind.DOT,                None),
         '|'         : Token(TokenKind.PIPE,               None),
+        '!'         : Token(TokenKind.EXCLAMATION,        None),
         '='         : Token(TokenKind.EQUAL,              None),
         '!='        : Token(TokenKind.EQUAL_NOT,          None),
         '>'         : Token(TokenKind.GT,                 None),

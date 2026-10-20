@@ -43,6 +43,7 @@ class TokenKind(Enum):
     COMMA              = auto() # ,
     DOT                = auto() # .
     PIPE               = auto() # |
+    EXCLAMATION        = auto() # !
     EQUAL              = auto() # =
     EQUAL_NOT          = auto() # !=
     GT                 = auto() # >
@@ -87,6 +88,7 @@ class TokenKind(Enum):
             TokenKind.COMMA         : "','",
             TokenKind.DOT           : "'.'",
             TokenKind.PIPE          : "'|'",
+            TokenKind.EXCLAMATION   : "'!'",
             TokenKind.EQUAL         : "'='",
             TokenKind.EQUAL_NOT     : "'!='",
             TokenKind.GT            : "'>'",

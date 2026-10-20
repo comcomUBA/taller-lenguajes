@@ -78,6 +78,9 @@ class Procedure:
         self.expression_r   = []
         self.expression_a   = []
 
+        # ... código a completar ...!
+        ...
+
     # Función de uso interno.
     @classmethod
     def __build__(self, name, p_l, return_type, e_r, e_a):
@@ -135,10 +138,11 @@ class Predicate:
     expression     : [Token]
 
     def __init__(self, t_b: TokenBuffer):
-        # ... código a completar ...!
-
         self.parameter_list = []
         self.expression     = []
+
+        # ... código a completar ...!
+        ...
 
     # Función de uso interno.
     @classmethod
@@ -183,10 +187,11 @@ class Auxiliary:
     expression     : [Token]
 
     def __init__(self, t_b: TokenBuffer):
-        # ... código a completar ...!
-
         self.parameter_list = []
         self.expression     = []
+
+        # ... código a completar ...!
+        ...
 
     # Función de uso interno.
     @classmethod
@@ -237,12 +242,13 @@ class ADT:
     auxiliary_list : [Auxiliary]
 
     def __init__(self, t_b: TokenBuffer):
-        # ... código a completar ...!
-
-        self.observer_list  = []
+        self.observer_list = []
         self.procedure_list = []
         self.predicate_list = []
         self.auxiliary_list = []
+
+        # ... código a completar ...!
+        ...
 
     # Función de uso interno.
     @classmethod
@@ -320,16 +326,12 @@ class Expression:
 
         # Caso: 1, 123, 67
         if Expression.is_atom(ex_l):
-            ex_l = Expression(ExpressionKind.ATOM, ex_l.data)
-        # Caso: (
-        elif ex_l.kind == TokenKind.ROUND_BEGIN:
-            ex_l = Expression.parse_recurse(token, 0)
-            token.want(TokenKind.ROUND_CLOSE)
+            # ... código a completar ...!
+            ...
         # Caso: -
         elif Expression.is_operator(ex_l):
-            bp_r = Expression.prefix_bind_power(ex_l)
-            ex_r = Expression.parse_recurse(token, bp_r)
-            ex_l = Expression(ExpressionKind.PREFIX, (ex_l, ex_r))
+            # ... código a completar ...!
+            ...
         else:
             raise ValueError(f"{ex_l} no es un valor válido (pre-fix).")
 
@@ -338,29 +340,17 @@ class Expression:
         while True:
             operator = token.peek()
 
-            if operator != None:
-                if not Expression.is_operator(operator):
-                    raise ValueError(f"{operator} no es un operador válido (post-fix).")
-            else:
-                break
+            # ... código a completar ...!
+            ...
 
             #================================
 
-            # Caso: [
+            # Caso: !
             pf_bp = Expression.postfix_bind_power(operator)
 
             if pf_bp != None:
-                if pf_bp < minimum_bind_power:
-                    break
-
-                token.pop()
-
-                if operator.kind == TokenKind.BLOCK_BEGIN:
-                    ex_r = Expression.parse_recurse(token, 0)
-                    token.want(TokenKind.BLOCK_CLOSE)
-                    ex_l = Expression(ExpressionKind.POSTFIX, (operator, ex_l, ex_r))
-
-                continue
+                # ... código a completar ...!
+                ...
 
             #================================
 
@@ -370,13 +360,8 @@ class Expression:
             if if_bp != None:
                 (bp_l, bp_r) = if_bp
 
-                if bp_l < minimum_bind_power:
-                    break
-
-                token.pop()
-                ex_r = Expression.parse_recurse(token, bp_r)
-                ex_l = Expression(ExpressionKind.INFIX, (operator, ex_l, ex_r))
-                continue
+                # ... código a completar ...!
+                ...
 
             break
 
@@ -405,11 +390,7 @@ class Expression:
             TokenKind.SUBTRACT,
             TokenKind.MULTIPLY,
             TokenKind.DIVIDE,
-            TokenKind.DOT,
-            TokenKind.ROUND_BEGIN,
-            TokenKind.ROUND_CLOSE,
-            TokenKind.BLOCK_BEGIN,
-            TokenKind.BLOCK_CLOSE
+            TokenKind.EXCLAMATION
         ]
 
         if token.kind in look_up:
@@ -425,7 +406,7 @@ class Expression:
 
         match token.kind:
             case TokenKind.SUBTRACT:
-                return 7
+                return 5
             case x:
                 return ValueError(f"{token} no es un operador válido.")
 
@@ -436,8 +417,8 @@ class Expression:
         """
 
         match token.kind:
-            case TokenKind.BLOCK_BEGIN:
-                return 8
+            case TokenKind.EXCLAMATION:
+                return 6
             case x:
                 return None
 
@@ -452,8 +433,6 @@ class Expression:
                 return (1, 2)
             case TokenKind.MULTIPLY | TokenKind.DIVIDE:
                 return (3, 4)
-            case TokenKind.DOT:
-                return (6, 5)
             case x:
                 return None
 

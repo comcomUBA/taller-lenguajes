@@ -17,45 +17,6 @@ if __name__ == "__main__":
             print(parser(t_b).__buildstr__())
     else:
         class TestParser(unittest.TestCase):
-            def test_ex_complejo(self):
-                r_1 = Expression.parse((lexer(test_file("test/ex_complejo.txt"))))
-                r_2 = Expression.__build__(
-                  ExpressionKind.INFIX,
-                  (
-                    Token(TokenKind.MULTIPLY, None),
-                    Expression.__build__(
-                      ExpressionKind.INFIX,
-                      (
-                        Token(TokenKind.DIVIDE, None),
-                        Expression.__build__(
-                          ExpressionKind.INFIX,
-                          (
-                            Token(TokenKind.ADD, None),
-                            Expression.__build__(
-                              ExpressionKind.ATOM,
-                              2.0
-                            ),
-                            Expression.__build__(
-                              ExpressionKind.ATOM,
-                              2.0
-                            ),
-                          )
-                        ),
-                        Expression.__build__(
-                          ExpressionKind.ATOM,
-                          4.0
-                        ),
-                      )
-                    ),
-                    Expression.__build__(
-                      ExpressionKind.ATOM,
-                      8.0
-                    ),
-                  )
-                )
-
-                self.assertEqual(r_1, r_2)
-
             def test_ex_infijo(self):
                 r_1 = Expression.parse((lexer(test_file("test/ex_infijo.txt"))))
                 r_2 = Expression.__build__(
@@ -133,16 +94,28 @@ if __name__ == "__main__":
             def test_ex_posfijo(self):
                 r_1 = Expression.parse((lexer(test_file("test/ex_posfijo.txt"))))
                 r_2 = Expression.__build__(
-                  ExpressionKind.POSTFIX,
+                  ExpressionKind.INFIX,
                   (
-                    Token(TokenKind.BLOCK_BEGIN, None),
+                    Token(TokenKind.ADD, None),
                     Expression.__build__(
-                      ExpressionKind.ATOM,
-                      "foo"
+                      ExpressionKind.POSTFIX,
+                      (
+                        Token(TokenKind.EXCLAMATION, None),
+                        Expression.__build__(
+                          ExpressionKind.ATOM,
+                          67.0
+                        ),
+                      )
                     ),
                     Expression.__build__(
-                      ExpressionKind.ATOM,
-                      1.0
+                      ExpressionKind.POSTFIX,
+                      (
+                        Token(TokenKind.EXCLAMATION, None),
+                        Expression.__build__(
+                          ExpressionKind.ATOM,
+                          1337.0
+                        ),
+                      )
                     ),
                   )
                 )
