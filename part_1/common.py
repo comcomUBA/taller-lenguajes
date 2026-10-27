@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Any
 import sys
 
 #================================================================
 
-def test_file(name: str) -> str:
+def test_file(name: str) -> list[str]:
     with open(name) as file:
         return file.readlines()
 
@@ -123,7 +124,7 @@ class TokenKind(Enum):
 @dataclass
 class Token:
     kind : TokenKind
-    data : any
+    data : Any
 
     # Función de uso interno.
     def __buildstr__(self):
@@ -144,7 +145,7 @@ class Token:
 
 @dataclass
 class TokenBuffer:
-    token: [Token]
+    token: list[Token]
 
     def __init__(self):
         self.token = []

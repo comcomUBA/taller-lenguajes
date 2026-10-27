@@ -3,6 +3,7 @@ from lexer import lexer
 
 #================================================================
 
+from typing import Any
 from textwrap import indent
 import unittest
 
@@ -28,8 +29,8 @@ class Observer:
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, name, type):
-        this = self.__new__(self)
+    def __build__(cls, name, type):
+        this = cls.__new__(cls)
         this.name      = name
         this.type      = type
         return this
@@ -76,8 +77,8 @@ class Parameter:
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, reference, name, type):
-        this = self.__new__(self)
+    def __build__(cls, reference, name, type):
+        this = cls.__new__(cls)
         this.reference = reference
         this.name      = name
         this.type      = type
@@ -90,15 +91,14 @@ class Parameter:
 @dataclass
 class Procedure:
     name           : Token
-    parameter_list : [Parameter]
+    parameter_list : list[Parameter]
     return_type    : Token
-    expression_r   : [Token]
-    expression_a   : [Token]
+    expression_r   : list[Token]
+    expression_a   : list[Token]
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
 
-        self.return_type    = None
         self.parameter_list = []
         self.expression_r   = []
         self.expression_a   = []
@@ -152,8 +152,8 @@ class Procedure:
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, name, p_l, return_type, e_r, e_a):
-        this = self.__new__(self)
+    def __build__(cls, name, p_l, return_type, e_r, e_a):
+        this = cls.__new__(cls)
         this.name           = name
         this.parameter_list = p_l
         this.return_type    = return_type
@@ -203,8 +203,8 @@ class Procedure:
 @dataclass
 class Predicate:
     name           : Token
-    parameter_list : [Parameter]
-    expression     : [Token]
+    parameter_list : list[Parameter]
+    expression     : list[Token]
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
@@ -235,8 +235,8 @@ class Predicate:
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, name, p_l, e):
-        this = self.__new__(self)
+    def __build__(cls, name, p_l, e):
+        this = cls.__new__(cls)
         this.name           = name
         this.parameter_list = p_l
         this.expression     = e
@@ -271,9 +271,9 @@ class Predicate:
 @dataclass
 class Auxiliary:
     name           : Token
-    parameter_list : [Parameter]
+    parameter_list : list[Parameter]
     return_type    : Token
-    expression     : [Token]
+    expression     : list[Token]
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
@@ -308,8 +308,8 @@ class Auxiliary:
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, name, p_l, r_t, e):
-        this = self.__new__(self)
+    def __build__(cls, name, p_l, r_t, e):
+        this = cls.__new__(cls)
         this.name           = name
         this.parameter_list = p_l
         this.return_type    = r_t
@@ -349,10 +349,10 @@ class Auxiliary:
 @dataclass
 class ADT:
     name           : Token
-    observer_list  : [Observer]
-    procedure_list : [Procedure]
-    predicate_list : [Predicate]
-    auxiliary_list : [Auxiliary]
+    observer_list  : list[Observer]
+    procedure_list : list[Procedure]
+    predicate_list : list[Predicate]
+    auxiliary_list : list[Auxiliary]
 
     def __init__(self, t_b: TokenBuffer):
         # ... código a completar ...!
@@ -369,22 +369,25 @@ class ADT:
         t_b.want(TokenKind.BRACKET_BEGIN)
 
         while t_b.want_peek(TokenKind.BRACKET_CLOSE) == None:
-            match t_b.peek().kind:
-                case TokenKind.OBSERVER:
-                    self.observer_list.append(Observer(t_b))
-                case TokenKind.PROCEDURE:
-                    self.procedure_list.append(Procedure(t_b))
-                case TokenKind.PREDICATE:
-                    self.predicate_list.append(Predicate(t_b))
-                case TokenKind.AUXILIARY:
-                    self.auxiliary_list.append(Auxiliary(t_b))
+            token = t_b.peek()
+
+            if (token != None):
+                match token.kind:
+                    case TokenKind.OBSERVER:
+                        self.observer_list.append(Observer(t_b))
+                    case TokenKind.PROCEDURE:
+                        self.procedure_list.append(Procedure(t_b))
+                    case TokenKind.PREDICATE:
+                        self.predicate_list.append(Predicate(t_b))
+                    case TokenKind.AUXILIARY:
+                        self.auxiliary_list.append(Auxiliary(t_b))
 
         t_b.want(TokenKind.BRACKET_CLOSE)
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, name, o_l, p_l, e_l, a_l):
-        this = self.__new__(self)
+    def __build__(cls, name, o_l, p_l, e_l, a_l):
+        this = cls.__new__(cls)
         this.name           = name
         this.observer_list  = o_l
         this.procedure_list = p_l
@@ -445,7 +448,7 @@ class ExpressionKind(Enum):
 @dataclass
 class Expression:
     kind: ExpressionKind
-    data: any
+    data: Any
 
     @staticmethod
     def parse(token: TokenBuffer):
@@ -551,10 +554,10 @@ class Expression:
             case TokenKind.SUBTRACT:
                 return 5
             case x:
-                return ValueError(f"{token} no es un operador válido.")
+                raise ValueError(f"{token} no es un operador válido.")
 
     @staticmethod
-    def postfix_bind_power(token: Token) -> int:
+    def postfix_bind_power(token: Token) -> int | None:
         """
         Devuelve el poder de ligamiento de der. de un token asociado a un operador prefijo.
         """
@@ -566,7 +569,7 @@ class Expression:
                 return None
 
     @staticmethod
-    def infix_bind_power(token: Token) -> (int, int):
+    def infix_bind_power(token: Token) -> tuple[int, int] | None:
         """
         Devuelve el poder de ligamiento de izq./der. de un token asociado a un operador infijo.
         """
@@ -592,8 +595,8 @@ class Expression:
 
     # Función de uso interno.
     @classmethod
-    def __build__(self, kind, data):
-        this = self.__new__(self)
+    def __build__(cls, kind, data):
+        this = cls.__new__(cls)
         this.kind = kind
         this.data = data
         return this
@@ -614,15 +617,17 @@ class Expression:
 
 def parser(t_b: TokenBuffer) -> Procedure | Predicate | Auxiliary | ADT | None:
     value = None
+    token = t_b.peek()
 
-    match t_b.peek().kind:
-        case TokenKind.PROCEDURE:
-            value = Procedure(t_b)
-        case TokenKind.PREDICATE:
-            value = Predicate(t_b)
-        case TokenKind.AUXILIARY:
-            value = Auxiliary(t_b)
-        case TokenKind.ADT:
-            value = ADT(t_b)
+    if token != None:
+        match token.kind:
+            case TokenKind.PROCEDURE:
+                value = Procedure(t_b)
+            case TokenKind.PREDICATE:
+                value = Predicate(t_b)
+            case TokenKind.AUXILIARY:
+                value = Auxiliary(t_b)
+            case TokenKind.ADT:
+                value = ADT(t_b)
 
     return value

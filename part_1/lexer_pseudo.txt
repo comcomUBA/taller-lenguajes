@@ -1,0 +1,45 @@
+*************************
+*     Pseudo-código     *
+*************************
+
+token    <- TokenBuffer()
+string   <- ""
+enNumero <- False
+
+Por cada linea en el texto:
+    buffer   <- LineBuffer(linea)
+    caracter <- buffer.siguiente()
+
+    Mientras que caracter sea no-nulo:
+        Si el caracter es ' ':
+            Si string es no-vacio:
+                token.push(lex_string(string))
+                string <- ""
+
+            enNumero <- False
+        Si no:
+            Si el caracter es un simbolo:
+                Si se esta dentro de un numero, y el caracter es '.':
+                    string <- string + caracter
+                Si no:
+                    Si string es no-vacio:
+                        token.push(lex_string(string))
+                        string <- ""
+
+                    string <- string + caracter
+
+                    Si el siguiente caracter es '=':
+                        buffer.siguiente()
+                        string <- string + '='
+
+                    token.push(lex_string(string))
+                    string <- ""
+            Si no:
+                enNumero <- caracter.esNumerico()
+                string   <- string + caracter
+
+        caracter <- buffer.siguiente()
+
+    Si string es no-vacio:
+        token.push(lex_string(string))
+        string <- ""

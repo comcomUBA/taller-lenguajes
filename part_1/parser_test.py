@@ -14,7 +14,10 @@ if __name__ == "__main__":
         if "ex_" in sys.argv[1]:
             print(Expression.parse(t_b).__buildstr__())
         else:
-            print(parser(t_b).__buildstr__())
+            value = parser(t_b)
+
+            if value != None:
+                print(value.__buildstr__())
     else:
         class TestParser(unittest.TestCase):
             def test_ex_infijo(self):
@@ -257,7 +260,7 @@ if __name__ == "__main__":
 
                 self.assertEqual(r_1, r_2)
 
-            def test_pred_divide(self):
+            def test_pred_mayorPrimoQueDivide(self):
                 r_1 = parser(lexer(test_file("test/pred_mayorPrimoQueDivide.txt")))
                 r_2 = Predicate.__build__(
                   Token(TokenKind.IDENTIFIER, "mayorPrimoQueDivide"),
@@ -307,7 +310,7 @@ if __name__ == "__main__":
 
                 self.assertEqual(r_1, r_2)
 
-            def test_pred_divide(self):
+            def test_pred_sonCoprimos(self):
                 r_1 = parser(lexer(test_file("test/pred_sonCoprimos.txt")))
                 r_2 = Predicate.__build__(
                   Token(TokenKind.IDENTIFIER, "sonCoprimos"),
